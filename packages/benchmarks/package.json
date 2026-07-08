@@ -1,0 +1,18 @@
+{
+  "name": "@openforge/benchmarks",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "benchmark:recommendations": "vitest bench src/recommendations.bench.ts",
+    "benchmark:health": "vitest bench src/health.bench.ts"
+  },
+  "dependencies": {
+    "@openforge/recommendation-engine": "*",
+    "@openforge/repository-intelligence": "*",
+    "@openforge/issue-engine": "*"
+  },
+  "devDependencies": {
+    "vitest": "^1.4.0",
+    "typescript": "^5.4.5"
+  }
+}

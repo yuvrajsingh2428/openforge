@@ -4,7 +4,7 @@ import type { Recommendation } from "@openforge/recommendation-engine";
 import { ScoreBadge } from "./score-badge";
 import { FactorBreakdown } from "./factor-breakdown";
 import { ReasonList } from "./reason-list";
-
+import { RecommendationExtraStats } from "./recommendation-extra-stats";
 interface RecommendationCardProps {
   recommendation: Recommendation;
 }
@@ -41,6 +41,11 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
           {recommendation.explanation.summary}
         </p>
         <ReasonList factors={recommendation.explanation.factors} />
+        <RecommendationExtraStats 
+          owner={repoOwner} 
+          repo={repoName} 
+          issueNumber={issueNumber} 
+        />
       </div>
 
       <div className="mt-auto pt-4 border-t border-border/50">

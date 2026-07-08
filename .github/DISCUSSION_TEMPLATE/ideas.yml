@@ -1,0 +1,9 @@
+title: Idea
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Share your idea
+      description: What would you like to see built?
+    validations:
+      required: true

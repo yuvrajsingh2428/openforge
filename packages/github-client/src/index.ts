@@ -6,3 +6,4 @@ export * from "./types/graphql";
 export * from "./services/repository-service";
 export * from "./services/issue-service";
 export * from "./utils/rate-limit";
+export * from "./services/search-service";
