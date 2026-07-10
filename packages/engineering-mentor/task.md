@@ -1,0 +1,25 @@
+# Phase 10: AI Engineering Mentor Tasks
+
+- [ ] Structure & Models (`packages/engineering-mentor`)
+  - [ ] Create `packages/engineering-mentor` workspace structure
+  - [ ] Define `MentorSession` domain model & TS interfaces
+  - [ ] Define Zod schemas for validating mentor output
+- [ ] Context & Prompt Builders (`packages/engineering-mentor`)
+  - [ ] Implement `ContextBuilder` layer (gathers graph, journey, deps, architectures)
+  - [ ] Implement prompt builders: Repo, Strategy, Reading Order, Debugging, Checklist, Learning
+  - [ ] Implement AI code validation & retry logic (fail if code generation persists)
+- [ ] Orchestration Service (`packages/engineering-mentor`)
+  - [ ] Implement `MentorService` combining context, prompts, caching, and validation
+- [ ] APIs (`apps/web`)
+  - [ ] Create `/api/repositories/[owner]/[repo]/issues/[number]/mentor/session`
+  - [ ] Create derived endpoints for reading-order, strategy, debugging, checklist
+  - [ ] Integrate shared AI Cache to store generated mentor sessions
+- [ ] UI Dashboard (`apps/web`)
+  - [ ] Create Mentor Dashboard UI displaying Strategy, Debugging, Reading Order timeline, and Learning cards
+- [ ] Testing
+  - [ ] Unit tests for `ContextBuilder`
+  - [ ] Unit tests for Zod validation & retry logic
+  - [ ] AI contradiction validation tests (ensures AI output does not contradict graph/architecture)
+  - [ ] Regression tests ensuring Recommendation Engine scores are unchanged
+- [ ] Documentation
+  - [ ] Document mentor architecture, prompts, and educational philosophy in package README
