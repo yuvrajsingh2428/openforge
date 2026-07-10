@@ -1,25 +1,29 @@
-# Phase 10: AI Engineering Mentor Tasks
+# Backend API Refactoring Tasks
 
-- [ ] Structure & Models (`packages/engineering-mentor`)
-  - [ ] Create `packages/engineering-mentor` workspace structure
-  - [ ] Define `MentorSession` domain model & TS interfaces
-  - [ ] Define Zod schemas for validating mentor output
-- [ ] Context & Prompt Builders (`packages/engineering-mentor`)
-  - [ ] Implement `ContextBuilder` layer (gathers graph, journey, deps, architectures)
-  - [ ] Implement prompt builders: Repo, Strategy, Reading Order, Debugging, Checklist, Learning
-  - [ ] Implement AI code validation & retry logic (fail if code generation persists)
-- [ ] Orchestration Service (`packages/engineering-mentor`)
-  - [ ] Implement `MentorService` combining context, prompts, caching, and validation
-- [ ] APIs (`apps/web`)
-  - [ ] Create `/api/repositories/[owner]/[repo]/issues/[number]/mentor/session`
-  - [ ] Create derived endpoints for reading-order, strategy, debugging, checklist
-  - [ ] Integrate shared AI Cache to store generated mentor sessions
-- [ ] UI Dashboard (`apps/web`)
-  - [ ] Create Mentor Dashboard UI displaying Strategy, Debugging, Reading Order timeline, and Learning cards
-- [ ] Testing
-  - [ ] Unit tests for `ContextBuilder`
-  - [ ] Unit tests for Zod validation & retry logic
-  - [ ] AI contradiction validation tests (ensures AI output does not contradict graph/architecture)
-  - [ ] Regression tests ensuring Recommendation Engine scores are unchanged
-- [ ] Documentation
-  - [ ] Document mentor architecture, prompts, and educational philosophy in package README
+- [ ] Core Helpers
+  - [ ] Create `apps/web/src/lib/api-helper.ts` (standards envelopes, validation helpers)
+- [ ] System Routes
+  - [ ] Create `/api/health`
+  - [ ] Create `/api/version`
+  - [ ] Create `/api/config`
+- [ ] Refactor Existing Routes (standardize response & Zod validation)
+  - [ ] `/api/repositories`
+  - [ ] `/api/issues`
+  - [ ] `/api/recommendations`
+  - [ ] `/api/repository-health`
+  - [ ] `/api/contribution-estimate`
+  - [ ] `/api/search/repositories`
+  - [ ] `/api/ai/*` summary, complexity, plan, concepts, learning-path
+  - [ ] `/api/repositories/[owner]/[repo]/issues/[number]/mentor/*` session, strategy, reading-order, debugging, checklist
+- [ ] New Refactored Routes
+  - [ ] `/api/repositories/[owner]/[repo]/intelligence` (consolidated)
+  - [ ] `/api/issues/[id]/recommendation` (where `id` is `owner:repo:number` or equivalent)
+  - [ ] `/api/recommendations/[issueId]/breakdown`
+  - [ ] `/api/search/issues`
+  - [ ] `/api/search/technologies`
+  - [ ] `/api/search/architectures`
+  - [ ] `/api/debug/cache` (development-only cache)
+- [ ] Testing & Build
+  - [ ] Add integration tests verifying API structure, validation, and HTTP statuses
+  - [ ] Verify test suite passes
+  - [ ] Verify workspace build compiles successfully

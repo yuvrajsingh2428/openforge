@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SnapshotService, KnowledgeGraphBuilder, RepositoryMapGenerator, AnalysisCache } from "@openforge/repository-intelligence";
+import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 export async function GET(
   request: Request,
@@ -18,10 +18,9 @@ export async function GET(
     
     const repoId = `github.com/${owner}/${repo}`;
     const repoMap = RepositoryMapGenerator.generate(cacheEntry.graph, repoId);
-
-    return NextResponse.json(repoMap);
+    return standardResponse(repoMap);
   } catch (error: any) {
     console.error("Repository Map error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 }

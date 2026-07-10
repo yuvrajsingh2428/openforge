@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SnapshotService, KnowledgeGraphBuilder, AnalysisCache } from "@openforge/repository-intelligence";
+import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 export async function GET(
   request: Request,
@@ -16,9 +16,9 @@ export async function GET(
       cacheEntry = { snapshot, graph, fetchedAt: new Date() };
     }
 
-    return NextResponse.json(JSON.parse(cacheEntry.graph.serialize()));
+    return standardResponse(JSON.parse(cacheEntry.graph.serialize()));
   } catch (error: any) {
     console.error("Knowledge Graph error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 }

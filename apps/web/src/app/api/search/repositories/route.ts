@@ -1,21 +1,41 @@
-import { NextResponse } from 'next/server';
+import { z } from "zod";
 import { searchRepositories } from '@openforge/github-client';
+import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
 
+const QuerySchema = z.object({
+  q: z.string().default(""),
+  after: z.string().optional(),
+  language: z.string().optional(),
+  architecture: z.string().optional(),
+  technology: z.string().optional(),
+  testingFramework: z.string().optional(),
+  buildTool: z.string().optional(),
+  packageManager: z.string().optional(),
+  database: z.string().optional(),
+  ci: z.string().optional()
+});
+
+/**
+ * @openapi
+ * /api/search/repositories:
+ *   get:
+ *     summary: Search repositories on GitHub with filters
+ *     responses:
+ *       200:
+ *         description: Success
+ */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q') || '';
-  const after = searchParams.get('after');
-  
-  const language = searchParams.get('language');
-  const architecture = searchParams.get('architecture');
-  const technology = searchParams.get('technology');
-  const testingFramework = searchParams.get('testingFramework');
-  const buildTool = searchParams.get('buildTool');
-  const packageManager = searchParams.get('packageManager');
-  const database = searchParams.get('database');
-  const ci = searchParams.get('ci');
+  const result = await validateRequest(request, QuerySchema);
+  if (!result.success) {
+    return result.errorResponse;
+  }
 
-  let fullQuery = query;
+  const {
+    q, after, language, architecture, technology,
+    testingFramework, buildTool, packageManager, database, ci
+  } = result.data;
+
+  let fullQuery = q;
   if (language) fullQuery += ` language:${language}`;
   if (technology) fullQuery += ` ${technology}`;
   if (testingFramework) fullQuery += ` ${testingFramework}`;
@@ -29,19 +49,14 @@ export async function GET(request: Request) {
   }
 
   if (!fullQuery.trim()) {
-    return NextResponse.json({ error: 'Query parameter "q" or filters are required' }, { status: 400 });
+    return errorResponse("Query parameter 'q' or filters are required", 400);
   }
 
   try {
     const results = await searchRepositories(fullQuery.trim(), 20, after || undefined);
-    // Add basic Cache-Control for Vercel / browsers
-    return NextResponse.json(results, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-      },
-    });
+    return standardResponse(results);
   } catch (error: any) {
     console.error('Error searching repositories:', error);
-    return NextResponse.json({ error: 'Failed to search repositories' }, { status: 500 });
+    return errorResponse('Failed to search repositories', 500);
   }
 }

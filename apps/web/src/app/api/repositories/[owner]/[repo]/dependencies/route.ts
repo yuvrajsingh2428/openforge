@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SnapshotService, KnowledgeGraphBuilder, DependencyDetector, AnalysisCache } from "@openforge/repository-intelligence";
+import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 export async function GET(
   request: Request,
@@ -23,12 +23,10 @@ export async function GET(
       })
       .flatMap(f => DependencyDetector.detect(f));
 
-    // Dedup
     const uniqueDeps = Array.from(new Map(deps.map(d => [`${d.name}-${d.version}`, d])).values());
-
-    return NextResponse.json(uniqueDeps);
+    return standardResponse(uniqueDeps);
   } catch (error: any) {
     console.error("Dependencies error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 }
