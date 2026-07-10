@@ -1,29 +1,38 @@
-import { NextResponse } from 'next/server';
+import { z } from "zod";
 import { ContributionEstimator } from '@openforge/issue-engine';
 import { getIssue } from '@openforge/github-client';
+import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
 
 const estimator = new ContributionEstimator();
 
+const QuerySchema = z.object({
+  owner: z.string().min(1, "Owner is required"),
+  repo: z.string().min(1, "Repo is required"),
+  number: z.preprocess((val) => parseInt(val as string, 10), z.number())
+});
+
+/**
+ * @openapi
+ * /api/contribution-estimate:
+ *   get:
+ *     summary: Estimate contribution size
+ *     responses:
+ *       200:
+ *         description: Success
+ */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const owner = searchParams.get('owner');
-  const repo = searchParams.get('repo');
-  const numberStr = searchParams.get('number');
-
-  if (!owner || !repo || !numberStr) {
-    return NextResponse.json({ error: 'owner, repo, and number are required' }, { status: 400 });
+  const result = await validateRequest(request, QuerySchema);
+  if (!result.success) {
+    return result.errorResponse;
   }
 
-  const number = parseInt(numberStr, 10);
-  if (isNaN(number)) {
-    return NextResponse.json({ error: 'issue number must be a valid integer' }, { status: 400 });
-  }
+  const { owner, repo, number } = result.data;
 
   try {
     const data = await getIssue(owner, repo, number);
     
     if (!data) {
-      return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+      return errorResponse('Issue not found', 404);
     }
 
     const { issue } = data;
@@ -35,19 +44,14 @@ export async function GET(request: Request) {
       bodyLength: issue.body?.length || 0,
       commentsCount: issue.comments?.totalCount || 0,
       issueAgeDays: ageDays,
-      repositoryMaturityScore: 80, // deterministic mock for repo maturity
+      repositoryMaturityScore: 80,
       assigneesCount: issue.assignees?.nodes?.length || 0,
     };
 
     const estimate = estimator.estimate(input);
-
-    return NextResponse.json(estimate, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    });
+    return standardResponse(estimate);
   } catch (error: any) {
     console.error('Error estimating contribution:', error);
-    return NextResponse.json({ error: 'Failed to estimate contribution size' }, { status: 500 });
+    return errorResponse('Failed to estimate contribution size', 500);
   }
 }

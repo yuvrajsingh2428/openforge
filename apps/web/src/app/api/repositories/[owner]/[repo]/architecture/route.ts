@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SnapshotService, ArchitectureDetector, KnowledgeGraphBuilder, AnalysisCache } from "@openforge/repository-intelligence";
+import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 export async function GET(
   request: Request,
@@ -17,10 +17,9 @@ export async function GET(
     }
     
     const architectures = ArchitectureDetector.detect(cacheEntry.snapshot.tree);
-
-    return NextResponse.json(architectures);
+    return standardResponse(architectures);
   } catch (error: any) {
     console.error("Architecture error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 }

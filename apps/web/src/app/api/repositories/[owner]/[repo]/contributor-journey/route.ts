@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SnapshotService, KnowledgeGraphBuilder, ContributorJourneyGenerator, AnalysisCache } from "@openforge/repository-intelligence";
+import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 export async function GET(
   request: Request,
@@ -18,10 +18,9 @@ export async function GET(
     
     const repoId = `github.com/${owner}/${repo}`;
     const journey = ContributorJourneyGenerator.generate(cacheEntry.graph, repoId);
-
-    return NextResponse.json(journey);
+    return standardResponse(journey);
   } catch (error: any) {
     console.error("Journey error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errorResponse(error.message, 500);
   }
 }

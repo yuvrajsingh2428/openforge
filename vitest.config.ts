@@ -1,7 +1,11 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
+    alias: {
+      '@': path.resolve(__dirname, './apps/web/src')
+    },
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
