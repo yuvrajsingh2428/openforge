@@ -1,19 +1,22 @@
-import { z } from "zod";
+import { env } from "@openforge/config";
 
-const configSchema = z.object({
-  GITHUB_TOKEN: z.string().min(1, "GITHUB_TOKEN is required"),
-});
-
+/**
+ * Returns the GitHub configuration.
+ *
+ * GITHUB_TOKEN is optional at startup to allow UI-only development.
+ * This function throws a descriptive error if the token is missing
+ * when GitHub API operations are actually attempted.
+ */
 export function getConfig() {
-  const parsed = configSchema.safeParse({
-    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-  });
+  const token = env.GITHUB_TOKEN;
 
-  if (!parsed.success) {
+  if (!token) {
     throw new Error(
-      `Invalid GitHub Client configuration: ${parsed.error.message}`
+      "GITHUB_TOKEN is required for GitHub API operations. " +
+        "Set it in your .env file. " +
+        "See: https://github.com/settings/tokens"
     );
   }
 
-  return parsed.data;
+  return { GITHUB_TOKEN: token };
 }

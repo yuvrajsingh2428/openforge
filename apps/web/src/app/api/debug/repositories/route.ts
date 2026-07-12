@@ -1,4 +1,5 @@
 import { getRepositories } from "@openforge/github-client";
+import { env } from "@openforge/config";
 import { standardResponse, errorResponse } from "@/lib/api-helper";
 
 /**
@@ -11,7 +12,7 @@ import { standardResponse, errorResponse } from "@/lib/api-helper";
  *         description: Success
  */
 export async function GET() {
-  if (process.env.NODE_ENV === "production") {
+  if (env.NODE_ENV === "production") {
     return errorResponse("Forbidden in production mode", 403);
   }
 
@@ -22,3 +23,4 @@ export async function GET() {
     return errorResponse(error.message, 500);
   }
 }
+

@@ -1,3 +1,5 @@
+import { env } from "./env";
+
 export interface AIConfig {
   readonly provider: "ollama";
   readonly model: string;
@@ -15,7 +17,7 @@ export const AI_CONFIG: AIConfig = {
   timeoutMs: 60_000,
   retryCount: 2,
   cacheTtlMs: 30 * 60 * 1000, // 30 minutes
-  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
+  ollamaBaseUrl: env.OLLAMA_BASE_URL,
 } as const;
 
 export const PROMPT_VERSIONS = {

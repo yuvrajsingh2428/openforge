@@ -1,4 +1,5 @@
 import { standardResponse } from "@/lib/api-helper";
+import { env } from "@openforge/config";
 
 /**
  * @openapi
@@ -13,6 +14,7 @@ export async function GET() {
   return standardResponse({
     version: "1.0.0",
     name: "OpenForge",
-    environment: process.env.NODE_ENV || "development"
+    environment: env.NODE_ENV
   });
 }
+

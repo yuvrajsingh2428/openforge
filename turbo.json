@@ -11,6 +11,29 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "benchmark:recommendations": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "benchmark:health": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "clean": {
+      "outputs": []
     }
   }
 }

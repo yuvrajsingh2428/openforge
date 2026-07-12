@@ -13,6 +13,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@openforge/config": "*",
     "zod": "^4.4.3"
   }
 }

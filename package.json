@@ -12,6 +12,12 @@
     "lint": "turbo run lint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "typecheck": "turbo run typecheck",
+    "check": "turbo run lint typecheck test",
+    "validate": "turbo run lint typecheck test build",
+    "clean": "turbo run clean",
+    "bench": "turbo run benchmark:recommendations benchmark:health --filter=@openforge/benchmarks",
+    "e2e": "npx playwright test --config=apps/web/playwright.config.ts",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky"
   },

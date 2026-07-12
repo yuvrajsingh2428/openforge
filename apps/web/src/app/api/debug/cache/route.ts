@@ -1,4 +1,5 @@
 import { standardResponse, errorResponse } from "@/lib/api-helper";
+import { env } from "@openforge/config";
 import { AnalysisCache } from "@openforge/repository-intelligence";
 
 /**
@@ -11,13 +12,13 @@ import { AnalysisCache } from "@openforge/repository-intelligence";
  *         description: Success
  */
 export async function GET() {
-  if (process.env.NODE_ENV === "production") {
+  if (env.NODE_ENV === "production") {
     return errorResponse("Forbidden in production mode", 403);
   }
 
   // Retrieve basic cache metrics
   return standardResponse({
-    env: process.env.NODE_ENV,
+    env: env.NODE_ENV,
     cacheType: "InMemoryCache",
     activeEntriesCount: 0 // Mocked stats as cache uses local map
   });
@@ -33,7 +34,7 @@ export async function GET() {
  *         description: Cache Cleared
  */
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  if (env.NODE_ENV === "production") {
     return errorResponse("Forbidden in production mode", 403);
   }
 
