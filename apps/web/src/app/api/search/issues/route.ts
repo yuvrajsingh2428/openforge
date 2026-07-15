@@ -4,7 +4,11 @@ import { standardResponse, errorResponse, validateRequest } from "@/lib/api-help
 
 const QuerySchema = z.object({
   q: z.string().min(1, "Query string is required"),
-  first: z.preprocess((val) => parseInt(val as string, 10), z.number().default(10)),
+  first: z.preprocess((val) => {
+    if (val === undefined || val === null || val === "") return undefined;
+    const parsed = parseInt(val as string, 10);
+    return isNaN(parsed) ? undefined : parsed;
+  }, z.number().default(10)),
   after: z.string().optional()
 });
 

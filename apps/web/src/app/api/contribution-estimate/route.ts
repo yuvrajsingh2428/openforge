@@ -8,7 +8,11 @@ const estimator = new ContributionEstimator();
 const QuerySchema = z.object({
   owner: z.string().min(1, "Owner is required"),
   repo: z.string().min(1, "Repo is required"),
-  number: z.preprocess((val) => parseInt(val as string, 10), z.number())
+  number: z.preprocess((val) => {
+    if (val === undefined || val === null || val === "") return undefined;
+    const parsed = parseInt(val as string, 10);
+    return isNaN(parsed) ? undefined : parsed;
+  }, z.number({ message: "Issue number is required" }))
 });
 
 /**

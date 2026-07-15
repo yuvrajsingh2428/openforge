@@ -5,10 +5,10 @@ export interface ApiResponseEnvelope<T = any> {
   success: boolean;
   data: T | null;
   error: string | null;
-  meta?: any;
+  meta: any;
 }
 
-export function standardResponse<T>(data: T, status: number = 200, meta?: any): NextResponse<ApiResponseEnvelope<T>> {
+export function standardResponse<T>(data: T, status: number = 200, meta: any = {}): NextResponse<ApiResponseEnvelope<T>> {
   return NextResponse.json(
     {
       success: true,
@@ -20,7 +20,7 @@ export function standardResponse<T>(data: T, status: number = 200, meta?: any): 
   );
 }
 
-export function errorResponse(message: string, status: number = 500, details?: any): NextResponse<ApiResponseEnvelope<null>> {
+export function errorResponse(message: string, status: number = 500, details: any = {}): NextResponse<ApiResponseEnvelope<null>> {
   return NextResponse.json(
     {
       success: false,
