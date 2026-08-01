@@ -1,11 +1,11 @@
-import { OllamaProvider } from "../ollama";
 import type { AIProvider } from "../../types";
+import { createAIProvider } from "../../factory/providerFactory";
 
 let _provider: AIProvider | null = null;
 
 export function getAIProvider(): AIProvider {
   if (!_provider) {
-    _provider = new OllamaProvider();
+    _provider = createAIProvider();
   }
   return _provider;
 }

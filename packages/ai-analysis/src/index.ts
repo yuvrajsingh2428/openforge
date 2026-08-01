@@ -28,9 +28,22 @@ export type {
   ComplexityAnalysis,
 } from "./schemas";
 
-// Provider
+// Providers
 export { OllamaProvider } from "./providers/ollama";
+export { OpenRouterProvider } from "./providers/openrouter";
 export { getAIProvider, resetAIProvider } from "./providers/base";
+export { createAIProvider } from "./factory/providerFactory";
+
+// Errors
+export {
+  AIProviderError,
+  AIAuthenticationError,
+  AIRateLimitError,
+  AIModelNotFoundError,
+  AITimeoutError,
+  AINetworkError,
+  AIResponseParseError,
+} from "./errors";
 
 // Services
 export { generateIssueSummary, generateContributionPlan, generateComplexityAnalysis, generateConceptExtraction } from "./services/issue-analysis";

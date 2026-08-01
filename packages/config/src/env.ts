@@ -30,12 +30,24 @@ const envSchema = z.object({
   GITHUB_REST_API_URL: z.string().url().default("https://api.github.com"),
   GITHUB_USER_AGENT: z.string().default("OpenForge"),
 
+  // ── AI Provider ──────────────────────────────────────────────
+  AI_PROVIDER: z
+    .enum(["ollama", "openrouter"])
+    .default("ollama"),
+
   // ── AI / Ollama ──────────────────────────────────────────────
   OLLAMA_BASE_URL: z.string().url().default("http://localhost:11434"),
   OLLAMA_CHAT_MODEL: z.string().default("qwen3:8b"),
   OLLAMA_SUMMARY_MODEL: z.string().default("gemma3:latest"),
   OLLAMA_EMBEDDING_MODEL: z.string().default("nomic-embed-text"),
   OLLAMA_TIMEOUT: z.coerce.number().positive().default(120_000),
+
+  // ── AI / OpenRouter ─────────────────────────────────────────
+  OPENROUTER_API_KEY: z.string().optional().default(""),
+  OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
+  OPENROUTER_MODEL: z.string().default("deepseek/deepseek-chat-v3"),
+  OPENROUTER_HTTP_REFERER: z.string().default("http://localhost:3000"),
+  OPENROUTER_APP_NAME: z.string().default("OpenForge"),
 
   // ── Cache ────────────────────────────────────────────────────
   CACHE_ENABLED: booleanFromString.default(true),

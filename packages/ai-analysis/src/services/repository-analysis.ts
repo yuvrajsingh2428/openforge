@@ -10,13 +10,13 @@ import { buildRepositorySummaryPrompt, REPOSITORY_SUMMARY_PROMPT_VERSION } from 
 const cache = new InMemoryCache();
 
 export async function generateRepositorySummary(context: RepositoryContext): Promise<AIAnalysisResult<RepositorySummary>> {
-  const cacheKey = buildCacheKey("repo-summary", context.fullName, REPOSITORY_SUMMARY_PROMPT_VERSION, AI_CONFIG.model);
+  const provider = getAIProvider();
+  const cacheKey = buildCacheKey("repo-summary", context.fullName, REPOSITORY_SUMMARY_PROMPT_VERSION, `${provider.name}:${AI_CONFIG.model}`);
   const cached = cache.get<RepositorySummary>(cacheKey);
   if (cached) {
     return { success: true, data: cached, error: null, cached: true, model: AI_CONFIG.model, durationMs: 0 };
   }
 
-  const provider = getAIProvider();
   const availability = await provider.isAvailable();
   if (!availability.available) {
     return { success: false, data: null, error: availability.message, cached: false, model: AI_CONFIG.model, durationMs: 0 };

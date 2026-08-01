@@ -66,6 +66,15 @@ vi.mock("@openforge/recommendation-engine", () => ({
 }));
 
 vi.mock("@openforge/ai-analysis", () => ({
+  getAIProvider: vi.fn().mockReturnValue({
+    name: "ollama",
+    isAvailable: vi.fn().mockResolvedValue({
+      available: false,
+      provider: "ollama",
+      model: null,
+      message: "Ollama is not running (test mock)",
+    }),
+  }),
   generateIssueSummary: vi.fn().mockResolvedValue({ success: true, data: { summary: "Ok" }, cached: false, model: "test", durationMs: 1 }),
   generateComplexityAnalysis: vi.fn().mockResolvedValue({ success: true, data: { complexity: "low" }, cached: false, model: "test", durationMs: 1 }),
   generateConceptExtraction: vi.fn().mockResolvedValue({ success: true, data: { concepts: [] }, cached: false, model: "test", durationMs: 1 }),

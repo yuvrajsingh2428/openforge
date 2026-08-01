@@ -5,7 +5,7 @@ OpenForge is a production-ready AI-powered developer tool that analyzes GitHub r
 ## Features
 
 - **Repository Intelligence** — Architecture detection, dependency analysis, knowledge graphs
-- **AI-Powered Analysis** — Issue summaries, complexity analysis, learning paths via Ollama
+- **AI-Powered Analysis** — Issue summaries, complexity analysis, learning paths via pluggable AI providers (Ollama for local dev, OpenRouter for cloud/production)
 - **Smart Recommendations** — Multi-factor scoring across learning impact, AI relevance, and maintainer friendliness
 - **Contribution Planning** — AI-generated step-by-step contribution plans
 - **Engineering Mentor** — AI mentor guiding open-source contributions
@@ -53,7 +53,11 @@ Open `.env` and configure the required values (see [Environment Variables](#envi
 GITHUB_TOKEN=ghp_your_token_here
 ```
 
-### 5. Install Ollama (for AI features)
+### 5. Set up AI Provider
+
+OpenForge supports multiple AI providers. Choose one:
+
+#### Option A: Ollama (Local Development — Default)
 
 Ollama runs AI models locally. Download from [ollama.com/download](https://ollama.com/download).
 
@@ -65,7 +69,41 @@ ollama pull gemma3:latest
 ollama pull nomic-embed-text
 ```
 
+Ensure your `.env` has:
+
+```env
+AI_PROVIDER=ollama
+```
+
 > **Note:** AI features are optional. The app starts and works for repository browsing without Ollama.
+
+#### Option B: OpenRouter (Cloud / Production)
+
+OpenRouter provides access to many AI models via a single API.
+
+1. Sign up at [openrouter.ai](https://openrouter.ai)
+2. Create an API key at [openrouter.ai/keys](https://openrouter.ai/keys)
+3. Configure your `.env`:
+
+```env
+AI_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-v1-your-key-here
+OPENROUTER_MODEL=deepseek/deepseek-chat-v3
+```
+
+#### Switching Providers
+
+Switching providers requires only changing the `AI_PROVIDER` environment variable:
+
+```env
+# Use Ollama for local development
+AI_PROVIDER=ollama
+
+# Use OpenRouter for cloud/production
+AI_PROVIDER=openrouter
+```
+
+Restart the development server after changing providers.
 
 ### 6. Run the development server
 
@@ -86,11 +124,17 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 | `GITHUB_API_URL` | No | `https://api.github.com/graphql` | GitHub GraphQL API endpoint |
 | `GITHUB_REST_API_URL` | No | `https://api.github.com` | GitHub REST API endpoint |
 | `GITHUB_USER_AGENT` | No | `OpenForge` | User-Agent header for GitHub requests |
+| `AI_PROVIDER` | No | `ollama` | AI provider to use (`ollama` / `openrouter`) |
 | `OLLAMA_BASE_URL` | No | `http://localhost:11434` | Ollama server URL |
-| `OLLAMA_CHAT_MODEL` | No | `qwen3:8b` | Model for conversational AI |
-| `OLLAMA_SUMMARY_MODEL` | No | `gemma3:latest` | Model for text summarization |
-| `OLLAMA_EMBEDDING_MODEL` | No | `nomic-embed-text` | Model for vector embeddings |
-| `OLLAMA_TIMEOUT` | No | `120000` | AI request timeout (ms) |
+| `OLLAMA_CHAT_MODEL` | No | `qwen3:8b` | Model for conversational AI (Ollama) |
+| `OLLAMA_SUMMARY_MODEL` | No | `gemma3:latest` | Model for text summarization (Ollama) |
+| `OLLAMA_EMBEDDING_MODEL` | No | `nomic-embed-text` | Model for vector embeddings (Ollama) |
+| `OLLAMA_TIMEOUT` | No | `120000` | AI request timeout in ms (Ollama) |
+| `OPENROUTER_API_KEY` | **Yes**\*\* | — | OpenRouter API key |
+| `OPENROUTER_BASE_URL` | No | `https://openrouter.ai/api/v1` | OpenRouter API base URL |
+| `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat-v3` | Model for AI analysis (OpenRouter) |
+| `OPENROUTER_HTTP_REFERER` | No | `http://localhost:3000` | HTTP Referer header for OpenRouter |
+| `OPENROUTER_APP_NAME` | No | `OpenForge` | App name sent to OpenRouter |
 | `CACHE_ENABLED` | No | `true` | Enable in-memory caching |
 | `CACHE_TTL` | No | `3600` | Cache time-to-live (seconds) |
 | `MAX_REPOSITORY_FILES` | No | `10000` | Max files to process per repo |
@@ -101,6 +145,8 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 | `DEBUG_MODE` | No | `false` | Enable debug mode |
 
 \* `GITHUB_TOKEN` is required for GitHub API features but the app can start without it for UI development.
+
+\*\* `OPENROUTER_API_KEY` is required only when `AI_PROVIDER=openrouter`.
 
 ## Available Scripts
 
@@ -202,6 +248,24 @@ ollama pull qwen3:8b
 ollama pull gemma3:latest
 ollama pull nomic-embed-text
 ```
+
+### OpenRouter API key errors
+
+**Symptom:** `Authentication failed for provider "openrouter"`
+
+**Fix:**
+1. Verify `OPENROUTER_API_KEY` is set in your `.env`
+2. Ensure the key is valid at [openrouter.ai/keys](https://openrouter.ai/keys)
+3. Check that `AI_PROVIDER=openrouter` is set
+
+### OpenRouter rate limits
+
+**Symptom:** `Rate limit exceeded for provider "openrouter"`
+
+**Fix:**
+1. Wait a moment and retry — the app uses automatic exponential backoff
+2. Consider upgrading your OpenRouter plan for higher rate limits
+3. Use Ollama for development to avoid rate limits
 
 ### Port 3000 already in use
 
