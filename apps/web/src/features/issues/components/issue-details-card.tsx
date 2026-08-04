@@ -80,18 +80,7 @@ export function IssueDetailsCard({ issue, repositoryName }: IssueDetailsCardProp
       {/* Comments */}
       <IssueComments count={issue.comments?.totalCount ?? 0} />
 
-      {/* Recommendation Placeholders */}
-      <div className="rounded-xl border bg-card p-5">
-        <h2 className="text-sm font-semibold mb-3">Contribution Insights</h2>
-        <p className="text-sm text-muted-foreground mb-3">
-          Detailed analysis will be available in a future update.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <IssueDifficultyBadge />
-          <IssueImpactBadge />
-          <IssueMaintainerBadge />
-        </div>
-      </div>
+
     </div>
   );
 }

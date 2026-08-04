@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@openforge/config": "*",
+    "@openforge/github-client": "*",
+    "@openforge/recommendation-engine": "*",
+    "@openforge/repository-intelligence": "*",
     "zod": "^3.23.0"
   },
   "devDependencies": {
