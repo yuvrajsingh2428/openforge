@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { searchRepositories } from '@openforge/github-client';
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const QuerySchema = z.object({
   q: z.string().default(""),
@@ -55,8 +55,7 @@ export async function GET(request: Request) {
   try {
     const results = await searchRepositories(fullQuery.trim(), 20, after || undefined);
     return standardResponse(results);
-  } catch (error: any) {
-    console.error('Error searching repositories:', error);
-    return errorResponse('Failed to search repositories', 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to search repositories"), 500);
   }
 }

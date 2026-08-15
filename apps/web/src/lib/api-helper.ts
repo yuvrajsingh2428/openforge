@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { env } from "@openforge/config";
 
 export interface ApiResponseEnvelope<T = any> {
   success: boolean;
@@ -8,7 +9,20 @@ export interface ApiResponseEnvelope<T = any> {
   meta: any;
 }
 
-export function standardResponse<T>(data: T, status: number = 200, meta: any = {}): NextResponse<ApiResponseEnvelope<T>> {
+export function sanitizeError(error: unknown, fallbackMessage: string = "An internal error occurred"): string {
+  if (env.NODE_ENV === "production") {
+    // Prevent internal database / stack / key exposure in production
+    return fallbackMessage;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function standardResponse<T>(
+  data: T,
+  status: number = 200,
+  meta: any = {},
+  headers: Record<string, string> = {}
+): NextResponse<ApiResponseEnvelope<T>> {
   return NextResponse.json(
     {
       success: true,
@@ -16,11 +30,16 @@ export function standardResponse<T>(data: T, status: number = 200, meta: any = {
       error: null,
       meta
     },
-    { status }
+    { status, headers }
   );
 }
 
-export function errorResponse(message: string, status: number = 500, details: any = {}): NextResponse<ApiResponseEnvelope<null>> {
+export function errorResponse(
+  message: string,
+  status: number = 500,
+  details: any = {},
+  headers: Record<string, string> = {}
+): NextResponse<ApiResponseEnvelope<null>> {
   return NextResponse.json(
     {
       success: false,
@@ -28,7 +47,7 @@ export function errorResponse(message: string, status: number = 500, details: an
       error: message,
       meta: details
     },
-    { status }
+    { status, headers }
   );
 }
 

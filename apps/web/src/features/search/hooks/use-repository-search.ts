@@ -78,9 +78,10 @@ export function useRepositorySearch(query: string, filters: SearchFiltersParams 
           if (!res.ok) throw new Error('Search failed');
           return res.json();
         })
-        .then(data => {
-          searchCache.set(cacheKey, data);
-          setResults(data);
+        .then(json => {
+          const payload = json.data ?? json;
+          searchCache.set(cacheKey, payload);
+          setResults(payload);
           setLoading(false);
         })
         .catch(err => {
@@ -110,10 +111,11 @@ export function useRepositorySearch(query: string, filters: SearchFiltersParams 
         if (!res.ok) throw new Error('Search failed');
         return res.json();
       })
-      .then(data => {
+      .then(json => {
+        const payload = json.data ?? json;
         const newData = {
-          ...data,
-          nodes: [...results.nodes, ...data.nodes]
+          ...payload,
+          nodes: [...results.nodes, ...(payload.nodes || [])]
         };
         searchCache.set(cacheKey, newData);
         setResults(newData);

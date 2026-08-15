@@ -17,6 +17,9 @@
     "validate": "turbo run lint typecheck test build",
     "clean": "turbo run clean",
     "bench": "turbo run benchmark:recommendations benchmark:health --filter=@openforge/benchmarks",
+    "benchmark:recommendations": "turbo run benchmark:recommendations --filter=@openforge/benchmarks",
+    "benchmark:health": "turbo run benchmark:health --filter=@openforge/benchmarks",
+    "sync:repos": "turbo run build",
     "e2e": "npx playwright test --config=apps/web/playwright.config.ts",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky"

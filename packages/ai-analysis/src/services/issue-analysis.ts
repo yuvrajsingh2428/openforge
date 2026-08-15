@@ -19,13 +19,13 @@ async function runAnalysis<T>(
   promptBuilder: () => ReturnType<typeof buildIssueSummaryPrompt>,
   schema: Parameters<typeof parseAIResponse<T>>[1],
 ): Promise<AIAnalysisResult<T>> {
-  const cacheKey = buildCacheKey(cacheType, identifier, promptVersion, AI_CONFIG.model);
+  const provider = getAIProvider();
+  const cacheKey = buildCacheKey(cacheType, identifier, promptVersion, `${provider.name}:${AI_CONFIG.model}`);
   const cached = cache.get<T>(cacheKey);
   if (cached) {
     return { success: true, data: cached, error: null, cached: true, model: AI_CONFIG.model, durationMs: 0 };
   }
 
-  const provider = getAIProvider();
   const availability = await provider.isAvailable();
   if (!availability.available) {
     return { success: false, data: null, error: availability.message, cached: false, model: AI_CONFIG.model, durationMs: 0 };

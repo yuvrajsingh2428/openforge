@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getIssue } from "@openforge/github-client";
 import { notFound } from "next/navigation";
 import { IssueDetailsCard } from "@/features/issues/components/issue-details-card";
+import { IssueAnalysisPanel } from "@/features/issues/components/analysis/IssueAnalysisPanel";
 import { MentorDashboard } from "@/features/mentor/components/mentor-dashboard";
 import { MentorService } from "@openforge/engineering-mentor";
 import Link from "next/link";
@@ -62,7 +63,7 @@ export default async function IssueDetailPage({ params }: IssueDetailPageProps) 
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       <div>
         <Link
           href="/issues"
@@ -75,6 +76,12 @@ export default async function IssueDetailPage({ params }: IssueDetailPageProps) 
           issue={issueWithRepo}
           repositoryName={result.repository.nameWithOwner}
         />
+      </div>
+
+      {/* Intelligent AI Issue Analysis */}
+      <div className="border-t pt-8">
+        <h2 className="text-2xl font-bold mb-4">Intelligent Issue Analysis</h2>
+        <IssueAnalysisPanel owner={owner} repo={repo} number={issueNumber} />
       </div>
 
       <div className="border-t pt-8">

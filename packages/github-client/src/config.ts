@@ -18,5 +18,9 @@ export function getConfig() {
     );
   }
 
-  return { GITHUB_TOKEN: token };
+  return {
+    GITHUB_TOKEN: token,
+    GITHUB_API_URL: env.GITHUB_API_URL,
+    GITHUB_USER_AGENT: env.GITHUB_USER_AGENT,
+  };
 }

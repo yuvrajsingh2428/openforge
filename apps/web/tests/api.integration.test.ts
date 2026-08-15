@@ -30,6 +30,11 @@ import { GET as mentorStrategyGET } from "../src/app/api/repositories/[owner]/[r
 import { GET as mentorDebuggingGET } from "../src/app/api/repositories/[owner]/[repo]/issues/[number]/mentor/debugging/route";
 import { GET as mentorChecklistGET } from "../src/app/api/repositories/[owner]/[repo]/issues/[number]/mentor/checklist/route";
 
+import { GET as issueAnalysisGET } from "../src/app/api/issues/[owner]/[repo]/[number]/analysis/route";
+import { GET as issueFilesGET } from "../src/app/api/issues/[owner]/[repo]/[number]/files/route";
+import { GET as issueLearningGET } from "../src/app/api/issues/[owner]/[repo]/[number]/learning/route";
+import { GET as issuePitfallsGET } from "../src/app/api/issues/[owner]/[repo]/[number]/pitfalls/route";
+
 // Mocks
 vi.mock("@openforge/github-client", () => ({
   getIssues: vi.fn().mockResolvedValue({ nodes: [], totalCount: 0 }),
@@ -51,7 +56,14 @@ vi.mock("@openforge/github-client", () => ({
       createdAt: new Date().toISOString(),
       labels: { nodes: [] },
       comments: { totalCount: 0 },
-      assignees: { nodes: [] }
+      assignees: { nodes: [] },
+      state: "OPEN",
+      number: 1,
+      repository: {
+        name: "repo",
+        nameWithOwner: "owner/repo",
+        owner: { login: "owner", avatarUrl: "" },
+      }
     }
   })
 }));
@@ -59,13 +71,52 @@ vi.mock("@openforge/github-client", () => ({
 vi.mock("@openforge/recommendation-engine", () => ({
   scoreIssue: vi.fn().mockReturnValue({
     overallScore: 54,
-    breakdown: { impact: 20, mergeProbability: 34 },
+    breakdown: {
+      learning: { score: 50 },
+      aiRelevance: { score: 60 },
+      maintainer: { score: 70 },
+      impact: { score: 20 },
+      mergeProbability: { score: 34 }
+    },
     explanation: { factors: [] }
   }),
   generateRecommendations: vi.fn().mockReturnValue([])
 }));
 
 vi.mock("@openforge/ai-analysis", () => ({
+  getAIProvider: vi.fn().mockReturnValue({
+    name: "ollama",
+    isAvailable: vi.fn().mockResolvedValue({
+      available: false,
+      provider: "ollama",
+      model: null,
+      message: "Ollama is not running (test mock)",
+    }),
+  }),
+  analyzeIssue: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      summary: "Test issue summary",
+      beginnerExplanation: "Test beginner explanation",
+      whyItMatters: "Test why it matters",
+      requiredSkills: ["TypeScript"],
+      conceptsToLearn: ["Testing"],
+      estimatedDifficulty: "Easy",
+      estimatedHours: 2,
+      confidence: 0.9,
+      likelyFiles: ["src/index.ts"],
+      implementationStrategy: ["Step 1"],
+      testingStrategy: ["Test 1"],
+      commonPitfalls: ["Pitfall 1"],
+      learningResources: [{ title: "Doc", reason: "Help" }],
+    },
+    cached: false,
+    model: "test-model",
+    durationMs: 10,
+  }),
+  predictFileDetails: vi.fn().mockReturnValue([{ path: "src/index.ts", fileType: "source" }]),
+  generateLearningRoadmap: vi.fn().mockReturnValue([{ category: "Required Skill", name: "TypeScript" }]),
+  generateFormattedResources: vi.fn().mockReturnValue([{ title: "Doc", reason: "Help", searchUrl: "http://google.com" }]),
   generateIssueSummary: vi.fn().mockResolvedValue({ success: true, data: { summary: "Ok" }, cached: false, model: "test", durationMs: 1 }),
   generateComplexityAnalysis: vi.fn().mockResolvedValue({ success: true, data: { complexity: "low" }, cached: false, model: "test", durationMs: 1 }),
   generateConceptExtraction: vi.fn().mockResolvedValue({ success: true, data: { concepts: [] }, cached: false, model: "test", durationMs: 1 }),
@@ -320,6 +371,31 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("GET /api/repositories/[owner]/[repo]/issues/[number]/mentor/checklist", async () => {
     const params = Promise.resolve({ owner: "test", repo: "repo", number: "1" });
     const res = await mentorChecklistGET(new Request("http://localhost"), { params });
+    await checkEnvelope(res);
+  });
+
+  // Intelligent Issue Analysis routes (Phase AI-2)
+  it("GET /api/issues/[owner]/[repo]/[number]/analysis", async () => {
+    const params = Promise.resolve({ owner: "owner", repo: "repo", number: "1" });
+    const res = await issueAnalysisGET(new Request("http://localhost"), { params });
+    await checkEnvelope(res);
+  });
+
+  it("GET /api/issues/[owner]/[repo]/[number]/files", async () => {
+    const params = Promise.resolve({ owner: "owner", repo: "repo", number: "1" });
+    const res = await issueFilesGET(new Request("http://localhost"), { params });
+    await checkEnvelope(res);
+  });
+
+  it("GET /api/issues/[owner]/[repo]/[number]/learning", async () => {
+    const params = Promise.resolve({ owner: "owner", repo: "repo", number: "1" });
+    const res = await issueLearningGET(new Request("http://localhost"), { params });
+    await checkEnvelope(res);
+  });
+
+  it("GET /api/issues/[owner]/[repo]/[number]/pitfalls", async () => {
+    const params = Promise.resolve({ owner: "owner", repo: "repo", number: "1" });
+    const res = await issuePitfallsGET(new Request("http://localhost"), { params });
     await checkEnvelope(res);
   });
 });

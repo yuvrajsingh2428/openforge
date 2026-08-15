@@ -77,7 +77,7 @@ export default async function RepositoryDetailPage({ params }: RepositoryDetailP
   const dependencies = Array.from(new Map(dependenciesRaw.map(d => [`${d.name}-${d.version}`, d])).values());
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <Link
         href="/repositories"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"

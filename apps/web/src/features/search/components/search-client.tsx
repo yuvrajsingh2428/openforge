@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRepositorySearch } from '../hooks/use-repository-search';
 import { SearchFilters } from './search-filters';
 import { SearchResults } from './search-results';
@@ -9,7 +10,8 @@ import { SearchEmptyState } from './search-empty-state';
 import { SearchErrorState } from './search-error-state';
 
 export function SearchClient() {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') || '');
   const [filters, setFilters] = useState<{
     language?: string;
     architecture?: string;

@@ -1,6 +1,6 @@
 import { getIssue } from "@openforge/github-client";
 import { MentorService } from "@openforge/engineering-mentor";
-import { standardResponse, errorResponse } from "@/lib/api-helper";
+import { standardResponse, errorResponse, sanitizeError } from "@/lib/api-helper";
 
 /**
  * @openapi
@@ -35,8 +35,7 @@ export async function GET(
     });
 
     return standardResponse(session);
-  } catch (error: any) {
-    console.error("Mentor Session error:", error);
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to generate mentor session"), 500);
   }
 }
