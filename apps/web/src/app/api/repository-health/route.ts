@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { HealthAnalysisService } from '@openforge/repository-intelligence';
 import { getRepository } from '@openforge/github-client';
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const healthService = new HealthAnalysisService();
 
@@ -57,8 +57,7 @@ export async function GET(request: Request) {
 
     const health = healthService.analyze(input);
     return standardResponse(health);
-  } catch (error: any) {
-    console.error('Error analyzing health:', error);
-    return errorResponse('Failed to analyze repository health', 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to analyze repository health"), 500);
   }
 }

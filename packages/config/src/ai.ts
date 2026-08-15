@@ -6,6 +6,7 @@ export interface AIConfig {
   readonly temperature: number;
   readonly timeoutMs: number;
   readonly retryCount: number;
+  readonly maxTokens: number;
   readonly cacheTtlMs: number;
   readonly ollamaBaseUrl: string;
   readonly openrouter: {
@@ -20,10 +21,11 @@ export interface AIConfig {
 export const AI_CONFIG: AIConfig = {
   provider: env.AI_PROVIDER as "ollama" | "openrouter",
   model: env.AI_PROVIDER === "openrouter" ? env.OPENROUTER_MODEL : env.OLLAMA_CHAT_MODEL,
-  temperature: 0.3,
-  timeoutMs: 60_000,
-  retryCount: 2,
-  cacheTtlMs: 30 * 60 * 1000, // 30 minutes
+  temperature: env.AI_TEMPERATURE,
+  timeoutMs: env.AI_REQUEST_TIMEOUT ?? env.OLLAMA_TIMEOUT,
+  retryCount: env.AI_MAX_RETRIES,
+  maxTokens: env.AI_MAX_TOKENS,
+  cacheTtlMs: env.CACHE_TTL * 1000,
   ollamaBaseUrl: env.OLLAMA_BASE_URL,
   openrouter: {
     apiKey: env.OPENROUTER_API_KEY ?? "",

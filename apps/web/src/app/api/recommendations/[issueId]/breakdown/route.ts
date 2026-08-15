@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { getIssue } from "@openforge/github-client";
 import { scoreIssue } from "@openforge/recommendation-engine";
-import { standardResponse, errorResponse } from "@/lib/api-helper";
+import { CURATED_REPOSITORIES } from "@openforge/config";
+import { standardResponse, errorResponse, sanitizeError } from "@/lib/api-helper";
 
 function parseIssueId(id: string): { owner: string; repo: string; number: number } {
   if (id.includes(":")) {
@@ -52,12 +52,17 @@ export async function GET(
       return errorResponse("Issue not found", 404);
     }
 
-    const score = scoreIssue(issueData.issue as any, "Frontend");
+    const repoConfig = CURATED_REPOSITORIES.find(
+      (r) => r.owner.toLowerCase() === owner.toLowerCase() && r.name.toLowerCase() === repo.toLowerCase()
+    );
+    const category = repoConfig?.category ?? "Frontend";
+
+    const score = scoreIssue(issueData.issue as any, category);
     return standardResponse({
       breakdown: score.breakdown,
       explanation: score.explanation
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to calculate recommendation breakdown"), 500);
   }
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SearchClient } from "@/features/search/components/search-client";
+import { SearchSkeleton } from "@/features/search/components/search-skeleton";
 
 export const metadata: Metadata = {
   title: "Live Search | OpenForge",
@@ -15,7 +17,9 @@ export default function SearchPage() {
           Find repositories to contribute to with live GitHub search.
         </p>
       </div>
-      <SearchClient />
+      <Suspense fallback={<SearchSkeleton />}>
+        <SearchClient />
+      </Suspense>
     </div>
   );
 }

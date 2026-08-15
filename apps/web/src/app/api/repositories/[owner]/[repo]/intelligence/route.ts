@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { standardResponse, errorResponse } from "@/lib/api-helper";
+import { standardResponse, errorResponse, sanitizeError } from "@/lib/api-helper";
 import { 
   SnapshotService, 
   KnowledgeGraphBuilder, 
@@ -64,7 +63,7 @@ export async function GET(
       journey,
       repoMap
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to analyze repository intelligence"), 500);
   }
 }

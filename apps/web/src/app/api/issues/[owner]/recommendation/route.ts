@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { getIssue } from "@openforge/github-client";
 import { scoreIssue } from "@openforge/recommendation-engine";
-import { standardResponse, errorResponse } from "@/lib/api-helper";
+import { CURATED_REPOSITORIES } from "@openforge/config";
+import { standardResponse, errorResponse, sanitizeError } from "@/lib/api-helper";
 
 function parseIssueId(id: string): { owner: string; repo: string; number: number } {
   if (id.includes(":")) {
@@ -25,7 +25,7 @@ function parseIssueId(id: string): { owner: string; repo: string; number: number
  *   get:
  *     summary: Retrieve recommendation score for an issue
  *     parameters:
- *       - name: id
+ *       - name: owner
  *         in: path
  *         required: true
  *         description: Format is owner-repo-number, owner:repo:number, or owner~repo~number
@@ -37,10 +37,10 @@ function parseIssueId(id: string): { owner: string; repo: string; number: number
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ owner: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { owner: id } = await params;
     const { owner, repo, number } = parseIssueId(id);
 
     if (!owner || !repo || isNaN(number)) {
@@ -52,9 +52,14 @@ export async function GET(
       return errorResponse("Issue not found", 404);
     }
 
-    const score = scoreIssue(issueData.issue as any, "Frontend"); // default category
+    const repoConfig = CURATED_REPOSITORIES.find(
+      (r) => r.owner.toLowerCase() === owner.toLowerCase() && r.name.toLowerCase() === repo.toLowerCase()
+    );
+    const category = repoConfig?.category ?? "Frontend";
+
+    const score = scoreIssue(issueData.issue as any, category);
     return standardResponse(score);
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to calculate recommendation score"), 500);
   }
 }

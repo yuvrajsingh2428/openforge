@@ -135,6 +135,15 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 | `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat-v3` | Model for AI analysis (OpenRouter) |
 | `OPENROUTER_HTTP_REFERER` | No | `http://localhost:3000` | HTTP Referer header for OpenRouter |
 | `OPENROUTER_APP_NAME` | No | `OpenForge` | App name sent to OpenRouter |
+| `DEBUG_API_SECRET` | No | — | Secret key required in `x-debug-secret` header for `/api/debug/*` routes |
+| `ENABLE_AI` | No | `true` | Feature flag to enable AI module |
+| `ENABLE_RECOMMENDATIONS` | No | `true` | Feature flag to enable Recommendations module |
+| `ENABLE_MENTOR` | No | `true` | Feature flag to enable Mentor module |
+| `ENABLE_REPOSITORY_INTELLIGENCE` | No | `true` | Feature flag to enable Repository Intelligence module |
+| `AI_MAX_RETRIES` | No | `3` | Maximum request retry attempts for AI provider calls |
+| `AI_TEMPERATURE` | No | `0` | AI generation temperature (0.0 to 2.0) |
+| `AI_MAX_TOKENS` | No | `4096` | Maximum token limit for AI completions |
+| `AI_REQUEST_TIMEOUT` | No | `120000` | Overall AI request timeout in milliseconds |
 | `CACHE_ENABLED` | No | `true` | Enable in-memory caching |
 | `CACHE_TTL` | No | `3600` | Cache time-to-live (seconds) |
 | `MAX_REPOSITORY_FILES` | No | `10000` | Max files to process per repo |
@@ -284,6 +293,75 @@ lsof -ti:3000 | xargs kill -9
 ```powershell
 Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess -Force
 ```
+
+## Analytics & PostHog Integration
+
+OpenForge features a decoupled, provider-agnostic analytics architecture (`apps/web/src/lib/analytics/`).
+
+### Configuration
+
+Set the environment variables in `.env`:
+
+```env
+NEXT_PUBLIC_POSTHOG_KEY=phc_your_key_here
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+### Tracked Events Catalog
+
+| Event Name | Category | Description |
+|---|---|---|
+| `app_started` | System | Triggered on initial app launch |
+| `page_viewed` | Navigation | Captured automatically on App Router route changes |
+| `web_vitals_captured` | Performance | Core Web Vitals (LCP, CLS, INP, TTFB, FCP) |
+| `repository_search` | Search | Queries, filters, and result count |
+| `repository_viewed` | Repository | Repository detail page views |
+| `repository_health_viewed` | Intelligence | Repository health score views |
+| `issue_viewed` | Issue | Issue detail page views |
+| `recommendation_clicked` | Recommendation | Clicks on scored recommendations |
+| `ai_summary_generated` | AI | Metadata for AI issue summarization |
+| `mentor_session_started` | Mentor | Engineering mentor session initialization |
+| `unhandled_error` | Reliability | Global uncaught errors and promise rejections |
+
+### Privacy Guarantees
+
+- **Zero Secret Exposure:** GitHub PATs, OpenRouter API keys, bearer tokens, JWTs, and private prompts are automatically scrubbed via `sanitizeAnalyticsPayload()`.
+- **Anonymous Identification:** Persistent anonymous IDs (`openforge_analytics_anonymous_id`) are generated in localStorage without collecting PII or email addresses.
+- **Offline Resiliency:** Unsent events are queued in localStorage (`openforge_analytics_queue_v1`) and flushed automatically when online.
+
+## Deployment Guide
+
+OpenForge is designed to be deployed cleanly to modern hosting platforms:
+
+### 1. Vercel / Cloud Hosts (Recommended)
+
+1. Import the repository into Vercel.
+2. Set the Root Directory to `apps/web` or keep default monorepo settings.
+3. Configure environment variables in Vercel project settings:
+   - `GITHUB_TOKEN`
+   - `AI_PROVIDER=openrouter`
+   - `OPENROUTER_API_KEY`
+   - `OPENROUTER_MODEL=deepseek/deepseek-chat-v3`
+   - `NODE_ENV=production`
+4. Deploy!
+
+### 2. Standalone Node.js Server
+
+```bash
+# 1. Build monorepo packages and Next.js app
+npm run build
+
+# 2. Start production Next.js server
+npm run start --workspace=web
+```
+
+## API Documentation
+
+See [API.md](./API.md) for full REST API endpoint specifications and response schemas.
+
+## Architecture & System Design
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed package interaction diagrams and data flows.
 
 ## License
 

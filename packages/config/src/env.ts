@@ -1,5 +1,32 @@
 import { z } from "zod";
 
+// Populate process.env from .env if running in Node environment without dotenv pre-loaded
+if (typeof window === "undefined" && typeof process !== "undefined" && process.env && !process.env.GITHUB_TOKEN) {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const dotenv = require("dotenv");
+    const cwd = process.cwd();
+    const candidatePaths = [
+      path.resolve(cwd, ".env"),
+      path.resolve(cwd, "..", ".env"),
+      path.resolve(cwd, "..", "..", ".env"),
+      path.resolve(__dirname, ".env"),
+      path.resolve(__dirname, "..", ".env"),
+      path.resolve(__dirname, "..", "..", ".env"),
+      path.resolve(__dirname, "..", "..", "..", ".env"),
+    ];
+    for (const envPath of candidatePaths) {
+      if (fs.existsSync(envPath)) {
+        dotenv.config({ path: envPath });
+        if (process.env.GITHUB_TOKEN) break;
+      }
+    }
+  } catch {
+    // Ignore in environments where require is unavailable
+  }
+}
+
 /**
  * Coerce a string environment variable to a boolean.
  * Accepts "true", "1", "yes" as truthy; everything else is falsy.
@@ -48,6 +75,21 @@ const envSchema = z.object({
   OPENROUTER_MODEL: z.string().default("deepseek/deepseek-chat-v3"),
   OPENROUTER_HTTP_REFERER: z.string().default("http://localhost:3000"),
   OPENROUTER_APP_NAME: z.string().default("OpenForge"),
+
+  // ── Debug Security ───────────────────────────────────────────
+  DEBUG_API_SECRET: z.string().optional().default(""),
+
+  // ── Feature Flags ────────────────────────────────────────────
+  ENABLE_AI: booleanFromString.default(true),
+  ENABLE_RECOMMENDATIONS: booleanFromString.default(true),
+  ENABLE_MENTOR: booleanFromString.default(true),
+  ENABLE_REPOSITORY_INTELLIGENCE: booleanFromString.default(true),
+
+  // ── AI Runtime Parameters ─────────────────────────────────────
+  AI_MAX_RETRIES: z.coerce.number().int().nonnegative().default(3),
+  AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0),
+  AI_MAX_TOKENS: z.coerce.number().positive().default(4096),
+  AI_REQUEST_TIMEOUT: z.coerce.number().positive().default(120_000),
 
   // ── Cache ────────────────────────────────────────────────────
   CACHE_ENABLED: booleanFromString.default(true),

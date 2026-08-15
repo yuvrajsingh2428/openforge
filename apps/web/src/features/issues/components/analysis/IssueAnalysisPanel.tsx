@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { IssueAnalysis } from "@openforge/ai-analysis";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { IssueSummaryCard } from "./IssueSummaryCard";
@@ -24,11 +24,11 @@ export function IssueAnalysisPanel({ owner, repo, number }: IssueAnalysisPanelPr
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/issues/${owner}/${repo}/${number}/analysis`);
+      const res = await fetch(`/api/issues/${owner}/${repo}/${number}/analysis`, { signal });
       const json = await res.json();
 
       if (!res.ok || !json.success || !json.data) {
@@ -37,16 +37,21 @@ export function IssueAnalysisPanel({ owner, repo, number }: IssueAnalysisPanelPr
 
       setAnalysis(json.data);
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       const msg = err instanceof Error ? err.message : "Error fetching AI analysis";
       setError(msg);
     } finally {
       setLoading(false);
     }
-  };
+  }, [owner, repo, number]);
 
   useEffect(() => {
-    fetchAnalysis();
-  }, [owner, repo, number]);
+    const controller = new AbortController();
+    fetchAnalysis(controller.signal);
+    return () => controller.abort();
+  }, [fetchAnalysis]);
 
   if (loading) {
     return (
@@ -75,7 +80,7 @@ export function IssueAnalysisPanel({ owner, repo, number }: IssueAnalysisPanelPr
           Unable to generate structured issue analysis. Reason: {error || "Analysis service unavailable"}
         </p>
         <button
-          onClick={fetchAnalysis}
+          onClick={() => fetchAnalysis()}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border bg-background hover:bg-muted transition-colors"
         >
           <RefreshCw className="h-3.5 w-3.5" />

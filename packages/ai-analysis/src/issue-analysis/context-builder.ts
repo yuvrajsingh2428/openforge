@@ -52,7 +52,9 @@ export async function buildIssueAnalysisContext(
       cacheEntry = { snapshot, graph, fetchedAt: new Date() };
     }
 
-    architecture = ArchitectureDetector.detect(cacheEntry.snapshot.tree).map((p) => p.name);
+    architecture = ArchitectureDetector.detect(cacheEntry.snapshot.tree).map((p: any) =>
+      typeof p === "string" ? p : p?.name ?? String(p)
+    );
 
     const dependenciesRaw = cacheEntry.snapshot.tree
       .filter(

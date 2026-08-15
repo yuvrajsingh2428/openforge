@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ContributionEstimator } from '@openforge/issue-engine';
 import { getIssue } from '@openforge/github-client';
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const estimator = new ContributionEstimator();
 
@@ -54,8 +54,7 @@ export async function GET(request: Request) {
 
     const estimate = estimator.estimate(input);
     return standardResponse(estimate);
-  } catch (error: any) {
-    console.error('Error estimating contribution:', error);
-    return errorResponse('Failed to estimate contribution size', 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to estimate contribution size"), 500);
   }
 }

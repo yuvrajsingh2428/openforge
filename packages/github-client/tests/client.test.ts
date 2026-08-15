@@ -10,8 +10,35 @@ vi.mock("../src/config", () => ({
 describe("GraphQL Client", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    (configModule.getConfig as any).mockReturnValue({ GITHUB_TOKEN: "test-token" });
+    (configModule.getConfig as any).mockReturnValue({
+      GITHUB_TOKEN: "test-token",
+      GITHUB_API_URL: "https://custom-enterprise.github.com/api/graphql",
+      GITHUB_USER_AGENT: "OpenForge-TestAgent",
+    });
     global.fetch = vi.fn();
+  });
+
+  it("uses GITHUB_API_URL and sends User-Agent header", async () => {
+    const mockData = { repository: { name: "test" } };
+    (global.fetch as any).mockResolvedValue({
+      status: 200,
+      ok: true,
+      headers: new Headers(),
+      json: async () => ({ data: mockData }),
+    });
+
+    await fetchGraphQL({ query: "query {}" });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://custom-enterprise.github.com/api/graphql",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer test-token",
+          "Content-Type": "application/json",
+          "User-Agent": "OpenForge-TestAgent",
+        }),
+      })
+    );
   });
 
   it("throws AuthenticationError on 401", async () => {

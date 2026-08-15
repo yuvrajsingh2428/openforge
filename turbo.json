@@ -1,13 +1,30 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
+    "NODE_ENV",
     "GITHUB_TOKEN",
     "GITHUB_API_URL",
     "GITHUB_REST_API_URL",
+    "AI_PROVIDER",
+    "OPENROUTER_API_KEY",
+    "OPENROUTER_BASE_URL",
+    "OPENROUTER_MODEL",
+    "OPENROUTER_HTTP_REFERER",
+    "OPENROUTER_APP_NAME",
     "OLLAMA_BASE_URL",
     "OLLAMA_CHAT_MODEL",
     "OLLAMA_SUMMARY_MODEL",
-    "OLLAMA_EMBEDDING_MODEL"
+    "OLLAMA_EMBEDDING_MODEL",
+    "CACHE_TTL",
+    "DEBUG_API_SECRET",
+    "AI_MAX_RETRIES",
+    "AI_TEMPERATURE",
+    "AI_MAX_TOKENS",
+    "AI_REQUEST_TIMEOUT",
+    "ENABLE_AI",
+    "ENABLE_RECOMMENDATIONS",
+    "ENABLE_MENTOR",
+    "ENABLE_REPOSITORY_INTELLIGENCE"
   ],
   "tasks": {
     "build": {

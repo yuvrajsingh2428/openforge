@@ -2,23 +2,23 @@ import { getConfig } from "./config";
 import { AuthenticationError, GitHubAPIError, RateLimitError } from "./errors";
 import { GraphQLRequestOptions } from "./types/graphql";
 
-const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
 const DEFAULT_TIMEOUT_MS = 15000;
 const MAX_RETRIES = 3;
 
 export async function fetchGraphQL<T>(options: GraphQLRequestOptions, retries = 0): Promise<T> {
-  const { GITHUB_TOKEN } = getConfig();
+  const { GITHUB_TOKEN, GITHUB_API_URL, GITHUB_USER_AGENT } = getConfig();
   const { query, variables, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(GITHUB_GRAPHQL_API, {
+    const response = await fetch(GITHUB_API_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         "Content-Type": "application/json",
+        "User-Agent": GITHUB_USER_AGENT,
       },
       body: JSON.stringify({ query, variables }),
       signal: controller.signal,

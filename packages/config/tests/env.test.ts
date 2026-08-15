@@ -1,41 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { z } from "zod";
-
-/**
- * We test the env schema directly rather than importing env.ts
- * (which would parse process.env at import time and potentially fail).
- * Instead, we replicate the schema here to test parsing behavior in isolation.
- */
-
-// ── Replicate the boolean coercion helper ────────────────────────
-const booleanFromString = z
-  .union([z.boolean(), z.string()])
-  .transform((val) => {
-    if (typeof val === "boolean") return val;
-    return ["true", "1", "yes"].includes(val.trim().toLowerCase());
-  });
-
-// ── Replicate the env schema ─────────────────────────────────────
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  GITHUB_TOKEN: z.string().optional().default(""),
-  GITHUB_API_URL: z.string().url().default("https://api.github.com/graphql"),
-  GITHUB_REST_API_URL: z.string().url().default("https://api.github.com"),
-  GITHUB_USER_AGENT: z.string().default("OpenForge"),
-  OLLAMA_BASE_URL: z.string().url().default("http://localhost:11434"),
-  OLLAMA_CHAT_MODEL: z.string().default("qwen3:8b"),
-  OLLAMA_SUMMARY_MODEL: z.string().default("gemma3:latest"),
-  OLLAMA_EMBEDDING_MODEL: z.string().default("nomic-embed-text"),
-  OLLAMA_TIMEOUT: z.coerce.number().positive().default(120_000),
-  CACHE_ENABLED: booleanFromString.default(true),
-  CACHE_TTL: z.coerce.number().positive().default(3600),
-  MAX_REPOSITORY_FILES: z.coerce.number().positive().default(10_000),
-  MAX_REPOSITORY_DEPTH: z.coerce.number().positive().default(8),
-  SEARCH_PAGE_SIZE: z.coerce.number().positive().default(20),
-  SEARCH_MAX_RESULTS: z.coerce.number().positive().default(100),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-  DEBUG_MODE: booleanFromString.default(false),
-});
+import { _envSchema as envSchema } from "../src/env";
 
 // ── Helper: build a fully valid env object ───────────────────────
 function validEnv(overrides: Record<string, unknown> = {}) {
@@ -50,6 +14,15 @@ function validEnv(overrides: Record<string, unknown> = {}) {
     OLLAMA_SUMMARY_MODEL: "gemma3:latest",
     OLLAMA_EMBEDDING_MODEL: "nomic-embed-text",
     OLLAMA_TIMEOUT: "120000",
+    DEBUG_API_SECRET: "",
+    ENABLE_AI: "true",
+    ENABLE_RECOMMENDATIONS: "true",
+    ENABLE_MENTOR: "true",
+    ENABLE_REPOSITORY_INTELLIGENCE: "true",
+    AI_MAX_RETRIES: "3",
+    AI_TEMPERATURE: "0",
+    AI_MAX_TOKENS: "4096",
+    AI_REQUEST_TIMEOUT: "120000",
     CACHE_ENABLED: "true",
     CACHE_TTL: "3600",
     MAX_REPOSITORY_FILES: "10000",
@@ -61,6 +34,46 @@ function validEnv(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+describe("Environment Configuration Schema Phase AI-2 Additions", () => {
+  it("should parse DEBUG_API_SECRET correctly", () => {
+    const result = envSchema.safeParse(validEnv({ DEBUG_API_SECRET: "my-secret-key-123" }));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DEBUG_API_SECRET).toBe("my-secret-key-123");
+    }
+  });
+
+  it("should parse Feature Flags with defaults", () => {
+    const result = envSchema.safeParse(validEnv({
+      ENABLE_AI: "false",
+      ENABLE_RECOMMENDATIONS: "1",
+    }));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.ENABLE_AI).toBe(false);
+      expect(result.data.ENABLE_RECOMMENDATIONS).toBe(true);
+      expect(result.data.ENABLE_MENTOR).toBe(true);
+      expect(result.data.ENABLE_REPOSITORY_INTELLIGENCE).toBe(true);
+    }
+  });
+
+  it("should parse AI Runtime Configuration", () => {
+    const result = envSchema.safeParse(validEnv({
+      AI_MAX_RETRIES: "5",
+      AI_TEMPERATURE: "0.7",
+      AI_MAX_TOKENS: "8192",
+      AI_REQUEST_TIMEOUT: "60000",
+    }));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.AI_MAX_RETRIES).toBe(5);
+      expect(result.data.AI_TEMPERATURE).toBe(0.7);
+      expect(result.data.AI_MAX_TOKENS).toBe(8192);
+      expect(result.data.AI_REQUEST_TIMEOUT).toBe(60000);
+    }
+  });
+});
 
 // ═══════════════════════════════════════════════════════════════════
 // Tests
