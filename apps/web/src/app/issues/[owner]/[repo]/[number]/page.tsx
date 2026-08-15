@@ -1,12 +1,33 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { getIssue } from "@openforge/github-client";
 import { notFound } from "next/navigation";
 import { IssueDetailsCard } from "@/features/issues/components/issue-details-card";
-import { IssueAnalysisPanel } from "@/features/issues/components/analysis/IssueAnalysisPanel";
-import { MentorDashboard } from "@/features/mentor/components/mentor-dashboard";
 import { MentorService } from "@openforge/engineering-mentor";
 import Link from "next/link";
 import { ArrowLeft, AlertCircle } from "lucide-react";
+
+const IssueAnalysisPanel = dynamic(
+  () => import("@/features/issues/components/analysis/IssueAnalysisPanel").then((m) => m.IssueAnalysisPanel),
+  {
+    loading: () => (
+      <div className="h-48 bg-muted rounded-xl animate-pulse flex items-center justify-center text-sm text-muted-foreground">
+        Loading AI Analysis...
+      </div>
+    ),
+  }
+);
+
+const MentorDashboard = dynamic(
+  () => import("@/features/mentor/components/mentor-dashboard").then((m) => m.MentorDashboard),
+  {
+    loading: () => (
+      <div className="h-48 bg-muted rounded-xl animate-pulse flex items-center justify-center text-sm text-muted-foreground">
+        Loading Mentor Dashboard...
+      </div>
+    ),
+  }
+);
 
 interface IssueDetailPageProps {
   params: Promise<{
