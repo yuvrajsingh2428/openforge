@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 async function RecommendationsContent() {
   try {
-    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 10);
+    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 15);
     
     // Map repo nameWithOwner to category
     const categoryMap = new Map<string, string>();

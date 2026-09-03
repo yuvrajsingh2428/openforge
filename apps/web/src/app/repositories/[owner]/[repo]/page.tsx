@@ -20,9 +20,20 @@ export async function generateMetadata({ params }: RepositoryDetailPageProps): P
   };
 }
 
+import dynamic from "next/dynamic";
 import { RepositoryHealthCard } from "@/features/repositories/components/repository-health-card";
-import { RepositoryIntelligenceCards } from "@/features/repositories/components/repository-intelligence-cards";
 import { HealthAnalysisService, SnapshotService, KnowledgeGraphBuilder, DependencyDetector, ArchitectureDetector, ContributorJourneyGenerator, RepositoryMapGenerator, AnalysisCache } from "@openforge/repository-intelligence";
+
+const RepositoryIntelligenceCards = dynamic(
+  () => import("@/features/repositories/components/repository-intelligence-cards").then((m) => m.RepositoryIntelligenceCards),
+  {
+    loading: () => (
+      <div className="h-64 bg-muted rounded-xl animate-pulse flex items-center justify-center text-sm text-muted-foreground">
+        Loading Repository Intelligence Graph & Architecture...
+      </div>
+    ),
+  }
+);
 
 const healthService = new HealthAnalysisService();
 

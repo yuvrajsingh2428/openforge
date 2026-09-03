@@ -14,7 +14,7 @@ import { standardResponse, errorResponse } from "@/lib/api-helper";
  */
 export async function GET() {
   try {
-    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 10);
+    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 15);
     
     const categoryMap = new Map<string, string>();
     for (const repo of CURATED_REPOSITORIES) {

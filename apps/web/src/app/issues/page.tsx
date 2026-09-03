@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 async function IssuesContent() {
   try {
-    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 5);
+    const issues = await getIssuesFromCuratedRepos(CURATED_REPOSITORIES, 15);
     return <IssueExplorer issues={issues} />;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : undefined;
