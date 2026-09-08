@@ -7,7 +7,7 @@ import { GET as configGET } from "../src/app/api/config/route";
 import { GET as repositoriesGET } from "../src/app/api/repositories/route";
 import { GET as repoIntelligenceGET } from "../src/app/api/repositories/[owner]/[repo]/intelligence/route";
 import { GET as issuesGET } from "../src/app/api/issues/route";
-import { GET as issueRecommendationGET } from "../src/app/api/issues/[id]/recommendation/route";
+import { GET as issueRecommendationGET } from "../src/app/api/issues/[owner]/recommendation/route";
 import { GET as recommendationsGET } from "../src/app/api/recommendations/route";
 import { GET as recommendationsBreakdownGET } from "../src/app/api/recommendations/[issueId]/breakdown/route";
 import { GET as searchRepositoriesGET } from "../src/app/api/search/repositories/route";
@@ -47,7 +47,7 @@ vi.mock("@openforge/github-client", () => ({
     forkCount: 2,
     openIssues: { totalCount: 1 },
     licenseInfo: { name: "MIT" },
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }),
   getIssue: vi.fn().mockResolvedValue({
     issue: {
@@ -63,9 +63,9 @@ vi.mock("@openforge/github-client", () => ({
         name: "repo",
         nameWithOwner: "owner/repo",
         owner: { login: "owner", avatarUrl: "" },
-      }
-    }
-  })
+      },
+    },
+  }),
 }));
 
 vi.mock("@openforge/recommendation-engine", () => ({
@@ -76,11 +76,11 @@ vi.mock("@openforge/recommendation-engine", () => ({
       aiRelevance: { score: 60 },
       maintainer: { score: 70 },
       impact: { score: 20 },
-      mergeProbability: { score: 34 }
+      mergeProbability: { score: 34 },
     },
-    explanation: { factors: [] }
+    explanation: { factors: [] },
   }),
-  generateRecommendations: vi.fn().mockReturnValue([])
+  generateRecommendations: vi.fn().mockReturnValue([]),
 }));
 
 vi.mock("@openforge/ai-analysis", () => ({
@@ -115,14 +115,66 @@ vi.mock("@openforge/ai-analysis", () => ({
     durationMs: 10,
   }),
   predictFileDetails: vi.fn().mockReturnValue([{ path: "src/index.ts", fileType: "source" }]),
-  generateLearningRoadmap: vi.fn().mockReturnValue([{ category: "Required Skill", name: "TypeScript" }]),
-  generateFormattedResources: vi.fn().mockReturnValue([{ title: "Doc", reason: "Help", searchUrl: "http://google.com" }]),
-  generateIssueSummary: vi.fn().mockResolvedValue({ success: true, data: { summary: "Ok" }, cached: false, model: "test", durationMs: 1 }),
-  generateComplexityAnalysis: vi.fn().mockResolvedValue({ success: true, data: { complexity: "low" }, cached: false, model: "test", durationMs: 1 }),
-  generateConceptExtraction: vi.fn().mockResolvedValue({ success: true, data: { concepts: [] }, cached: false, model: "test", durationMs: 1 }),
-  generateContributionPlan: vi.fn().mockResolvedValue({ success: true, data: { stages: [] }, cached: false, model: "test", durationMs: 1 }),
-  generateLearningPath: vi.fn().mockResolvedValue({ success: true, data: { path: [] }, cached: false, model: "test", durationMs: 1 }),
-  generateRepositorySummary: vi.fn().mockResolvedValue({ success: true, data: { overview: "Ok" }, cached: false, model: "test", durationMs: 1 })
+  generateLearningRoadmap: vi
+    .fn()
+    .mockReturnValue([{ category: "Required Skill", name: "TypeScript" }]),
+  generateFormattedResources: vi
+    .fn()
+    .mockReturnValue([{ title: "Doc", reason: "Help", searchUrl: "http://google.com" }]),
+  generateIssueSummary: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { summary: "Ok" },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
+  generateComplexityAnalysis: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { complexity: "low" },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
+  generateConceptExtraction: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { concepts: [] },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
+  generateContributionPlan: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { stages: [] },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
+  generateLearningPath: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { path: [] },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
+  generateRepositorySummary: vi
+    .fn()
+    .mockResolvedValue({
+      success: true,
+      data: { overview: "Ok" },
+      cached: false,
+      model: "test",
+      durationMs: 1,
+    }),
 }));
 
 vi.mock("@openforge/engineering-mentor", () => ({
@@ -143,14 +195,14 @@ vi.mock("@openforge/engineering-mentor", () => ({
         relevantFiles: [],
         affectedTests: [],
         logsToWatch: [],
-        verificationSteps: []
+        verificationSteps: [],
       },
       reviewChecklist: [],
       learningOutcomes: [],
       commonMistakes: [],
-      warnings: []
-    })
-  }
+      warnings: [],
+    }),
+  },
 }));
 
 vi.mock("@openforge/repository-intelligence", () => ({
@@ -159,36 +211,36 @@ vi.mock("@openforge/repository-intelligence", () => ({
       owner: "test",
       repo: "repo",
       fetchedAt: new Date(),
-      tree: []
-    })
+      tree: [],
+    }),
   },
   KnowledgeGraphBuilder: {
     build: vi.fn().mockReturnValue({
-      serialize: vi.fn().mockReturnValue('{"nodes":[],"edges":[]}')
-    })
+      serialize: vi.fn().mockReturnValue('{"nodes":[],"edges":[]}'),
+    }),
   },
   DependencyDetector: {
-    detect: vi.fn().mockReturnValue([])
+    detect: vi.fn().mockReturnValue([]),
   },
   ArchitectureDetector: {
-    detect: vi.fn().mockReturnValue([])
+    detect: vi.fn().mockReturnValue([]),
   },
   ContributorJourneyGenerator: {
-    generate: vi.fn().mockReturnValue([])
+    generate: vi.fn().mockReturnValue([]),
   },
   RepositoryMapGenerator: {
-    generate: vi.fn().mockReturnValue({ directories: [], files: [], entryPoints: [] })
+    generate: vi.fn().mockReturnValue({ directories: [], files: [], entryPoints: [] }),
   },
   AnalysisCache: {
     get: vi.fn().mockReturnValue(null),
-    set: vi.fn()
+    set: vi.fn(),
   },
   HealthAnalysisService: vi.fn().mockImplementation(() => ({
     analyze: vi.fn().mockReturnValue({
       score: 85,
-      factors: []
-    })
-  }))
+      factors: [],
+    }),
+  })),
 }));
 
 describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
@@ -219,7 +271,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   });
 
   it("GET /api/repositories", async () => {
-    const res = await repositoriesGET();
+    const res = await repositoriesGET(new Request("http://localhost/api/repositories"));
     await checkEnvelope(res);
   });
 
@@ -230,12 +282,12 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   });
 
   it("GET /api/issues", async () => {
-    const res = await issuesGET();
+    const res = await issuesGET(new Request("http://localhost/api/issues"));
     await checkEnvelope(res);
   });
 
-  it("GET /api/issues/[id]/recommendation", async () => {
-    const params = Promise.resolve({ id: "test-repo-1" });
+  it("GET /api/issues/[owner]/recommendation", async () => {
+    const params = Promise.resolve({ owner: "test-repo-1" });
     const res = await issueRecommendationGET(new Request("http://localhost"), { params });
     await checkEnvelope(res);
   });
@@ -292,7 +344,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/summary", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" })
+      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" }),
     });
     const res = await aiSummaryPOST(req);
     await checkEnvelope(res);
@@ -301,7 +353,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/complexity", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" })
+      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" }),
     });
     const res = await aiComplexityPOST(req);
     await checkEnvelope(res);
@@ -310,7 +362,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/concepts", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" })
+      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" }),
     });
     const res = await aiConceptsPOST(req);
     await checkEnvelope(res);
@@ -319,7 +371,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/contribution-plan", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" })
+      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" }),
     });
     const res = await aiPlanPOST(req);
     await checkEnvelope(res);
@@ -328,7 +380,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/learning-path", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" })
+      body: JSON.stringify({ repository: "test", title: "fix", body: "detail" }),
     });
     const res = await aiLearningPOST(req);
     await checkEnvelope(res);
@@ -337,7 +389,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   it("POST /api/ai/repository-summary", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({ name: "test", fullName: "test/test", description: "Ok" })
+      body: JSON.stringify({ name: "test", fullName: "test/test", description: "Ok" }),
     });
     const res = await aiRepoSummaryPOST(req);
     await checkEnvelope(res);
