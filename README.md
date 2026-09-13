@@ -120,11 +120,12 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `NODE_ENV` | No | `development` | Environment mode (`development` / `production` / `test`) |
+| `NEXT_PUBLIC_APP_URL` | Yes\* | `https://your-domain.vercel.app` | Public application base URL for metadata & sitemaps |
 | `GITHUB_TOKEN` | **Yes**\* | — | GitHub Personal Access Token for API access |
 | `GITHUB_API_URL` | No | `https://api.github.com/graphql` | GitHub GraphQL API endpoint |
 | `GITHUB_REST_API_URL` | No | `https://api.github.com` | GitHub REST API endpoint |
 | `GITHUB_USER_AGENT` | No | `OpenForge` | User-Agent header for GitHub requests |
-| `AI_PROVIDER` | No | `ollama` | AI provider to use (`ollama` / `openrouter`) |
+| `AI_PROVIDER` | No | `openrouter` | AI provider to use (`ollama` / `openrouter`) |
 | `OLLAMA_BASE_URL` | No | `http://localhost:11434` | Ollama server URL |
 | `OLLAMA_CHAT_MODEL` | No | `qwen3:8b` | Model for conversational AI (Ollama) |
 | `OLLAMA_SUMMARY_MODEL` | No | `gemma3:latest` | Model for text summarization (Ollama) |
@@ -135,6 +136,8 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 | `OPENROUTER_MODEL` | No | `deepseek/deepseek-chat-v3` | Model for AI analysis (OpenRouter) |
 | `OPENROUTER_HTTP_REFERER` | No | `http://localhost:3000` | HTTP Referer header for OpenRouter |
 | `OPENROUTER_APP_NAME` | No | `OpenForge` | App name sent to OpenRouter |
+| `NEXT_PUBLIC_POSTHOG_KEY` | No | — | Public PostHog project API key for analytics |
+| `NEXT_PUBLIC_POSTHOG_HOST` | No | `https://us.i.posthog.com` | PostHog analytics ingestion endpoint |
 | `DEBUG_API_SECRET` | No | — | Secret key required in `x-debug-secret` header for `/api/debug/*` routes |
 | `ENABLE_AI` | No | `true` | Feature flag to enable AI module |
 | `ENABLE_RECOMMENDATIONS` | No | `true` | Feature flag to enable Recommendations module |
