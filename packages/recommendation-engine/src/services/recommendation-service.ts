@@ -51,7 +51,7 @@ export function scoreIssue(issue: Issue, category: string): Recommendation {
     repoOwner: issue.repository?.owner.login ?? "",
     repoName: issue.repository?.name ?? "",
     repoLanguage: issue.repository?.primaryLanguage?.name ?? null,
-    repoStars: 0,
+    repoStars: issue.repository?.stargazerCount ?? 0,
     category,
     overallScore,
     breakdown,
