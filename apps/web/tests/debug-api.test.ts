@@ -1,16 +1,34 @@
-import { describe, it, expect, vi } from "vitest";
-import { GET as debugCacheGET, POST as debugCachePOST } from "../src/app/api/debug/cache/route";
-import { GET as debugRepositoriesGET } from "../src/app/api/debug/repositories/route";
-import { env } from "@openforge/config";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { GET as debugCacheGET } from "../src/app/api/debug/cache/route";
+
+const mockEnv = {
+  DEBUG_API_SECRET: "",
+  NODE_ENV: "development",
+};
+
+vi.mock("@openforge/config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@openforge/config")>();
+  return {
+    ...actual,
+    get env() {
+      return mockEnv as any;
+    },
+  };
+});
 
 vi.mock("@openforge/github-client", () => ({
-  getRepositories: vi.fn().mockResolvedValue([])
+  getRepositories: vi.fn().mockResolvedValue([]),
 }));
 
 describe("Debug API Security (DEBUG_API_SECRET)", () => {
+  beforeEach(() => {
+    mockEnv.DEBUG_API_SECRET = "";
+    mockEnv.NODE_ENV = "development";
+  });
+
   it("allows access when DEBUG_API_SECRET is empty", async () => {
-    (env as any).DEBUG_API_SECRET = "";
-    (env as any).NODE_ENV = "development";
+    mockEnv.DEBUG_API_SECRET = "";
+    mockEnv.NODE_ENV = "development";
 
     const req = new Request("http://localhost/api/debug/cache");
     const res = await debugCacheGET(req);
@@ -21,8 +39,8 @@ describe("Debug API Security (DEBUG_API_SECRET)", () => {
   });
 
   it("rejects request with 401 when DEBUG_API_SECRET is set but header is missing", async () => {
-    (env as any).DEBUG_API_SECRET = "super-secret-key-123";
-    (env as any).NODE_ENV = "development";
+    mockEnv.DEBUG_API_SECRET = "super-secret-key-123";
+    mockEnv.NODE_ENV = "development";
 
     const req = new Request("http://localhost/api/debug/cache");
     const res = await debugCacheGET(req);
@@ -34,8 +52,8 @@ describe("Debug API Security (DEBUG_API_SECRET)", () => {
   });
 
   it("rejects request with 401 when DEBUG_API_SECRET is set but header is invalid", async () => {
-    (env as any).DEBUG_API_SECRET = "super-secret-key-123";
-    (env as any).NODE_ENV = "development";
+    mockEnv.DEBUG_API_SECRET = "super-secret-key-123";
+    mockEnv.NODE_ENV = "development";
 
     const req = new Request("http://localhost/api/debug/cache", {
       headers: { "x-debug-secret": "wrong-secret" },
@@ -45,8 +63,8 @@ describe("Debug API Security (DEBUG_API_SECRET)", () => {
   });
 
   it("allows access when DEBUG_API_SECRET is set and header matches", async () => {
-    (env as any).DEBUG_API_SECRET = "super-secret-key-123";
-    (env as any).NODE_ENV = "development";
+    mockEnv.DEBUG_API_SECRET = "super-secret-key-123";
+    mockEnv.NODE_ENV = "development";
 
     const req = new Request("http://localhost/api/debug/cache", {
       headers: { "x-debug-secret": "super-secret-key-123" },
@@ -59,17 +77,13 @@ describe("Debug API Security (DEBUG_API_SECRET)", () => {
   });
 
   it("blocks access in production mode regardless of secret header", async () => {
-    (env as any).DEBUG_API_SECRET = "super-secret-key-123";
-    (env as any).NODE_ENV = "production";
+    mockEnv.DEBUG_API_SECRET = "super-secret-key-123";
+    mockEnv.NODE_ENV = "production";
 
     const req = new Request("http://localhost/api/debug/cache", {
       headers: { "x-debug-secret": "super-secret-key-123" },
     });
     const res = await debugCacheGET(req);
     expect(res.status).toBe(403);
-    
-    // Reset env NODE_ENV back to development/test
-    (env as any).NODE_ENV = "test";
-    (env as any).DEBUG_API_SECRET = "";
   });
 });
