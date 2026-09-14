@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Code } from "lucide-react";
 import type { Issue } from "@openforge/github-client";
 import { IssueStateBadge } from "./issue-state-badge";
 import { IssueLabels } from "./issue-labels";
@@ -7,7 +7,6 @@ import { IssueMetadata } from "./issue-metadata";
 import { IssueComments } from "./issue-comments";
 import { IssueMarkdownViewer } from "./issue-markdown-viewer";
 import { IssueTimeline } from "./issue-timeline";
-import { IssueDifficultyBadge, IssueImpactBadge, IssueMaintainerBadge } from "./issue-placeholder-badges";
 
 interface IssueDetailsCardProps {
   issue: Issue;
@@ -39,7 +38,7 @@ export function IssueDetailsCard({ issue, repositoryName }: IssueDetailsCardProp
         {repoDisplay && (
           <p className="text-sm text-muted-foreground">in {repoDisplay}</p>
         )}
-        <div className="flex items-center gap-3 mt-3">
+        <div className="flex flex-wrap items-center gap-3 mt-4">
           <a
             href={issue.url}
             target="_blank"
@@ -49,6 +48,16 @@ export function IssueDetailsCard({ issue, repositoryName }: IssueDetailsCardProp
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
             View on GitHub
           </a>
+          {repoDisplay && (
+            <a
+              href={`vscode://vscode.git/clone?url=${encodeURIComponent(`https://github.com/${repoDisplay}.git`)}`}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-input bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title="Open and clone repository in VS Code"
+            >
+              <Code className="h-4 w-4" aria-hidden="true" />
+              Open in VS Code
+            </a>
+          )}
         </div>
       </div>
 
