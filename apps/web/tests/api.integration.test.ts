@@ -7,7 +7,7 @@ import { GET as configGET } from "../src/app/api/config/route";
 import { GET as repositoriesGET } from "../src/app/api/repositories/route";
 import { GET as repoIntelligenceGET } from "../src/app/api/repositories/[owner]/[repo]/intelligence/route";
 import { GET as issuesGET } from "../src/app/api/issues/route";
-import { GET as issueRecommendationGET } from "../src/app/api/issues/[id]/recommendation/route";
+import { GET as issueRecommendationGET } from "../src/app/api/issues/[owner]/recommendation/route";
 import { GET as recommendationsGET } from "../src/app/api/recommendations/route";
 import { GET as recommendationsBreakdownGET } from "../src/app/api/recommendations/[issueId]/breakdown/route";
 import { GET as searchRepositoriesGET } from "../src/app/api/search/repositories/route";
@@ -219,7 +219,7 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   });
 
   it("GET /api/repositories", async () => {
-    const res = await repositoriesGET();
+    const res = await repositoriesGET(new Request("http://localhost/api/repositories"));
     await checkEnvelope(res);
   });
 
@@ -230,12 +230,12 @@ describe("Comprehensive API Standardized Envelopes & Routing Tests", () => {
   });
 
   it("GET /api/issues", async () => {
-    const res = await issuesGET();
+    const res = await issuesGET(new Request("http://localhost/api/issues"));
     await checkEnvelope(res);
   });
 
   it("GET /api/issues/[id]/recommendation", async () => {
-    const params = Promise.resolve({ id: "test-repo-1" });
+    const params = Promise.resolve({ owner: "owner-repo-1" });
     const res = await issueRecommendationGET(new Request("http://localhost"), { params });
     await checkEnvelope(res);
   });

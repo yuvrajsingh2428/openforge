@@ -26,6 +26,13 @@ export const IssueRepositorySchema = z.object({
     login: z.string(),
     avatarUrl: z.string(),
   }),
+  stargazerCount: z.number().optional(),
+  forkCount: z.number().optional(),
+  openIssues: z.object({ totalCount: z.number() }).optional(),
+  repositoryTopics: z.object({ nodes: z.array(z.object({ topic: z.object({ name: z.string() }) })) }).optional(),
+  licenseInfo: z.object({ name: z.string() }).nullable().optional(),
+  description: z.string().nullable().optional(),
+  updatedAt: z.string().optional(),
   primaryLanguage: z.object({
     name: z.string(),
     color: z.string().nullable().optional(),
