@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const { q, first, after } = result.data;
     const data = await getIssues(q, first, after);
     return standardResponse(data);
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to search issues"), 500);
   }
 }

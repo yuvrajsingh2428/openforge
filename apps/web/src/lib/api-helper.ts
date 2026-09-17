@@ -9,12 +9,24 @@ export interface ApiResponseEnvelope<T = any> {
   meta: any;
 }
 
+const SECRET_PATTERNS = [
+  /ghp_[a-zA-Z0-9]{36,255}/g,
+  /github_pat_[a-zA-Z0-9_]{30,255}/g,
+  /sk-or-v1-[a-zA-Z0-9]{32,255}/g,
+  /sk-[a-zA-Z0-9]{32,255}/g,
+  /Bearer\s+[a-zA-Z0-9\-\._~\+\/]+=*/gi,
+];
+
 export function sanitizeError(error: unknown, fallbackMessage: string = "An internal error occurred"): string {
   if (env.NODE_ENV === "production") {
     // Prevent internal database / stack / key exposure in production
     return fallbackMessage;
   }
-  return error instanceof Error ? error.message : String(error);
+  let message = error instanceof Error ? error.message : String(error);
+  for (const pattern of SECRET_PATTERNS) {
+    message = message.replace(pattern, "[REDACTED_SECRET]");
+  }
+  return message;
 }
 
 export function standardResponse<T>(
@@ -75,10 +87,10 @@ export async function validateRequest<T extends z.ZodTypeAny>(
       };
     }
     return { success: true, data: parsed.data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      errorResponse: errorResponse(`Invalid request structure: ${error.message}`, 400)
+      errorResponse: errorResponse(`Invalid request structure: ${sanitizeError(error, "Malformed request body")}`, 400)
     };
   }
 }
