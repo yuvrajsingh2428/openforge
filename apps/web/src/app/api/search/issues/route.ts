@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getIssues } from "@openforge/github-client";
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const QuerySchema = z.object({
   q: z.string().min(1, "Query string is required"),
