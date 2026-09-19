@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateComplexityAnalysis } from "@openforge/ai-analysis";
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const IssueContextSchema = z.object({
   repository: z.string().min(1),
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       model: analysis.model,
       durationMs: analysis.durationMs
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to analyze complexity"), 500);
   }
 }

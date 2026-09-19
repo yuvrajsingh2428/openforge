@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getIssues } from "@openforge/github-client";
-import { standardResponse, errorResponse, validateRequest } from "@/lib/api-helper";
+import { standardResponse, errorResponse, validateRequest, sanitizeError } from "@/lib/api-helper";
 
 const QuerySchema = z.object({
   q: z.string().min(1, "Query string is required"),
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const { q, first, after } = result.data;
     const data = await getIssues(q, first, after);
     return standardResponse(data);
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    return errorResponse(sanitizeError(error, "Failed to search issues"), 500);
   }
 }
