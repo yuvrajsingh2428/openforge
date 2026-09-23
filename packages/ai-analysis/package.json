@@ -13,7 +13,7 @@
     "@openforge/github-client": "*",
     "@openforge/recommendation-engine": "*",
     "@openforge/repository-intelligence": "*",
-    "zod": "^3.23.0"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
