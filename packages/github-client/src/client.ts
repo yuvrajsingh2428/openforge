@@ -5,6 +5,12 @@ import { GraphQLRequestOptions } from "./types/graphql";
 const DEFAULT_TIMEOUT_MS = 15000;
 const MAX_RETRIES = 3;
 
+/** Exponential backoff with random jitter: 1s, 2s, 4s base + up to 200ms jitter. */
+function backoff(attempt: number): Promise<void> {
+  const delay = Math.min(1000 * Math.pow(2, attempt), 10_000) + Math.random() * 200;
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 export async function fetchGraphQL<T>(options: GraphQLRequestOptions, retries = 0): Promise<T> {
   const { GITHUB_TOKEN, GITHUB_API_URL, GITHUB_USER_AGENT } = getConfig();
   const { query, variables, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
@@ -39,20 +45,13 @@ export async function fetchGraphQL<T>(options: GraphQLRequestOptions, retries = 
     }
 
     if (!response.ok) {
-      throw new GitHubAPIError(
-        `GitHub API error: ${response.statusText}`,
-        response.status
-      );
+      throw new GitHubAPIError(`GitHub API error: ${response.statusText}`, response.status);
     }
 
     const data = await response.json();
 
     if (data.errors && data.errors.length > 0) {
-      throw new GitHubAPIError(
-        `GraphQL error: ${data.errors[0].message}`,
-        200,
-        data.errors
-      );
+      throw new GitHubAPIError(`GraphQL error: ${data.errors[0].message}`, 200, data.errors);
     }
 
     return data.data as T;
@@ -60,11 +59,13 @@ export async function fetchGraphQL<T>(options: GraphQLRequestOptions, retries = 
     clearTimeout(timeoutId);
 
     if (error.name === "AbortError" && retries < MAX_RETRIES) {
+      await backoff(retries);
       return fetchGraphQL(options, retries + 1);
     }
-    
+
     // Auto-retry transient network errors
-    if (error instanceof TypeError && error.message.includes('fetch') && retries < MAX_RETRIES) {
+    if (error instanceof TypeError && error.message.includes("fetch") && retries < MAX_RETRIES) {
+      await backoff(retries);
       return fetchGraphQL(options, retries + 1);
     }
 

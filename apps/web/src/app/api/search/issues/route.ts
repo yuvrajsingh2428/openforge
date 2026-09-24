@@ -8,8 +8,8 @@ const QuerySchema = z.object({
     if (val === undefined || val === null || val === "") return undefined;
     const parsed = parseInt(val as string, 10);
     return isNaN(parsed) ? undefined : parsed;
-  }, z.number().default(10)),
-  after: z.string().optional()
+  }, z.number().min(1).max(100).default(10)),
+  after: z.string().optional(),
 });
 
 /**

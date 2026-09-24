@@ -59,7 +59,8 @@ export class OpenRouterProvider implements AIProvider {
         available: false,
         provider: this.name,
         model: null,
-        message: "OpenRouter API key is not configured. Set OPENROUTER_API_KEY in your environment.",
+        message:
+          "OpenRouter API key is not configured. Set OPENROUTER_API_KEY in your environment.",
       };
     }
 
@@ -69,7 +70,7 @@ export class OpenRouterProvider implements AIProvider {
 
       const response = await fetch(`${this.baseUrl}/models`, {
         headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           "HTTP-Referer": this.httpReferer,
           "X-Title": this.appName,
         },
@@ -113,7 +114,7 @@ export class OpenRouterProvider implements AIProvider {
 
   async chat(
     messages: AIChatMessage[],
-    options?: { temperature?: number; timeoutMs?: number },
+    options?: { temperature?: number; timeoutMs?: number }
   ): Promise<AIRawResponse> {
     if (!this.apiKey) {
       throw new AIAuthenticationError(this.name);
@@ -134,7 +135,7 @@ export class OpenRouterProvider implements AIProvider {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             "HTTP-Referer": this.httpReferer,
             "X-Title": this.appName,
           },
@@ -153,7 +154,7 @@ export class OpenRouterProvider implements AIProvider {
 
         let data: OpenRouterChatResponse;
         try {
-          data = await response.json() as OpenRouterChatResponse;
+          data = (await response.json()) as OpenRouterChatResponse;
         } catch {
           throw new AIResponseParseError(this.name, "Response is not valid JSON");
         }
@@ -175,7 +176,10 @@ export class OpenRouterProvider implements AIProvider {
           throw error;
         }
 
-        if (error instanceof DOMException && error.name === "AbortError") {
+        if (
+          error instanceof Error &&
+          (error.name === "AbortError" || (error as any).code === "ABORT_ERR")
+        ) {
           lastError = new AITimeoutError(this.name, timeoutMs);
           if (attempt < this.retryCount) {
             await this.backoff(attempt);
@@ -184,7 +188,10 @@ export class OpenRouterProvider implements AIProvider {
           throw lastError;
         }
 
-        if (error instanceof TypeError && (error.message.includes("fetch") || error.message.includes("network"))) {
+        if (
+          error instanceof TypeError &&
+          (error.message.includes("fetch") || error.message.includes("network"))
+        ) {
           lastError = new AINetworkError(this.name, error.message);
           if (attempt < this.retryCount) {
             await this.backoff(attempt);
@@ -228,7 +235,7 @@ export class OpenRouterProvider implements AIProvider {
           `OpenRouter responded with status ${status}`,
           this.name,
           status,
-          status >= 500,
+          status >= 500
         );
     }
   }
