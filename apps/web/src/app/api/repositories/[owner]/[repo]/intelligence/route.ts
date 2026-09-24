@@ -1,12 +1,12 @@
 import { standardResponse, errorResponse, sanitizeError } from "@/lib/api-helper";
-import { 
-  SnapshotService, 
-  KnowledgeGraphBuilder, 
-  DependencyDetector, 
-  ArchitectureDetector, 
-  ContributorJourneyGenerator, 
-  RepositoryMapGenerator, 
-  AnalysisCache 
+import {
+  SnapshotService,
+  KnowledgeGraphBuilder,
+  DependencyDetector,
+  ArchitectureDetector,
+  ContributorJourneyGenerator,
+  RepositoryMapGenerator,
+  AnalysisCache,
 } from "@openforge/repository-intelligence";
 
 /**
@@ -52,16 +52,29 @@ export async function GET(
     const journey = ContributorJourneyGenerator.generate(cacheEntry.graph, repoId);
     const architecture = ArchitectureDetector.detect(cacheEntry.snapshot.tree);
     const dependenciesRaw = cacheEntry.snapshot.tree
-      .filter(f => f.path && (f.path.endsWith("package.json") || f.path.endsWith("Cargo.toml") || f.path.endsWith("pyproject.toml") || f.path.endsWith("go.mod") || f.path.endsWith("pom.xml") || f.path.endsWith("requirements.txt")))
-      .flatMap(f => DependencyDetector.detect(f));
-    const dependencies = Array.from(new Map(dependenciesRaw.map(d => [`${d.name}-${d.version}`, d])).values());
+      .filter(
+        (f) =>
+          f.path &&
+          (f.path.endsWith("package.json") ||
+            f.path.endsWith("Cargo.toml") ||
+            f.path.endsWith("pyproject.toml") ||
+            f.path.endsWith("go.mod") ||
+            f.path.endsWith("pom.xml") ||
+            f.path.endsWith("requirements.txt"))
+      )
+      .flatMap((f) => DependencyDetector.detect(f));
+    const dependencies = Array.from(
+      new Map(dependenciesRaw.map((d) => [`${d.name}-${d.version}`, d])).values()
+    );
 
     return standardResponse({
-      graph: JSON.parse(cacheEntry.graph.serialize()),
-      dependencies,
+      graph:
+        typeof cacheEntry.graph?.toJSON === "function"
+          ? cacheEntry.graph.toJSON()
+          : JSON.parse(cacheEntry.graph.serialize()),
       architecture,
       journey,
-      repoMap
+      repoMap,
     });
   } catch (error: unknown) {
     return errorResponse(sanitizeError(error, "Failed to analyze repository intelligence"), 500);

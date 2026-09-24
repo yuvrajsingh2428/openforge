@@ -47,7 +47,7 @@
       "outputs": ["coverage/**"]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "outputs": []
     },
     "benchmark:recommendations": {

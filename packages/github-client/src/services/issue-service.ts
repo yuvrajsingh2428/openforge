@@ -8,8 +8,24 @@ export async function getIssue(
   owner: string,
   name: string,
   number: number
-): Promise<{ issue: Issue; repository: { name: string; nameWithOwner: string; owner: { login: string; avatarUrl: string }; primaryLanguage?: { name: string; color?: string | null } | null } } | null> {
-  const data = await fetchGraphQL<{ repository: { issue: unknown; name: string; nameWithOwner: string; owner: { login: string; avatarUrl: string }; primaryLanguage?: { name: string; color?: string | null } | null } }>({
+): Promise<{
+  issue: Issue;
+  repository: {
+    name: string;
+    nameWithOwner: string;
+    owner: { login: string; avatarUrl: string };
+    primaryLanguage?: { name: string; color?: string | null } | null;
+  };
+} | null> {
+  const data = await fetchGraphQL<{
+    repository: {
+      issue: unknown;
+      name: string;
+      nameWithOwner: string;
+      owner: { login: string; avatarUrl: string };
+      primaryLanguage?: { name: string; color?: string | null } | null;
+    };
+  }>({
     query: GET_ISSUE_QUERY,
     variables: { owner, name, number },
   });
@@ -34,7 +50,9 @@ export async function getIssues(
   first: number = 10,
   after?: string
 ): Promise<PaginatedResult<Issue>> {
-  const data = await fetchGraphQL<{ search: { issueCount: number; edges: { node: unknown }[]; pageInfo: unknown } }>({
+  const data = await fetchGraphQL<{
+    search: { issueCount: number; edges: { node: unknown }[]; pageInfo: unknown };
+  }>({
     query: GET_ISSUES_QUERY,
     variables: { query: searchQuery, first, after },
   });
@@ -44,10 +62,11 @@ export async function getIssues(
     return { nodes: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
   }
 
-  const nodes = searchData.edges
-    ?.map((edge) => edge.node)
-    .filter(Boolean) ?? [];
-  const parsedNodes = nodes.map((node) => IssueSchema.parse(node));
+  const nodes = searchData.edges?.map((edge) => edge.node).filter(Boolean) ?? [];
+  const parsedNodes = nodes
+    .map((node) => IssueSchema.safeParse(node))
+    .filter((r): r is { success: true; data: Issue } => r.success)
+    .map((r) => r.data);
 
   return {
     nodes: parsedNodes,
@@ -62,7 +81,15 @@ export async function getRepositoryIssues(
   first: number = 15,
   states?: string[]
 ): Promise<Issue[]> {
-  const data = await fetchGraphQL<{ repository: { issues: { nodes: unknown[] }; name: string; nameWithOwner: string; owner: { login: string; avatarUrl: string }; primaryLanguage?: { name: string; color?: string | null } | null } }>({
+  const data = await fetchGraphQL<{
+    repository: {
+      issues: { nodes: unknown[] };
+      name: string;
+      nameWithOwner: string;
+      owner: { login: string; avatarUrl: string };
+      primaryLanguage?: { name: string; color?: string | null } | null;
+    };
+  }>({
     query: GET_REPOSITORY_ISSUES_QUERY,
     variables: { owner, name, first, states: states ?? ["OPEN"] },
   });
@@ -80,19 +107,51 @@ export async function getRepositoryIssues(
 
   return data.repository.issues.nodes
     .filter(Boolean)
-    .map((node) => {
-      const issue = IssueSchema.parse(node);
-      return { ...issue, repository: repoInfo };
-    });
+    .map((node) => IssueSchema.safeParse(node))
+    .filter((r): r is { success: true; data: Issue } => r.success)
+    .map((r) => ({ ...r.data, repository: repoInfo }));
+}
+
+/** Max concurrent GitHub API requests to avoid secondary rate limits. */
+const MAX_CONCURRENCY = 5;
+
+/**
+ * Run an array of async task factories with bounded concurrency.
+ * Prevents overwhelming the GitHub API with too many simultaneous requests.
+ */
+async function withConcurrencyLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < tasks.length) {
+      const idx = nextIndex++;
+      try {
+        results[idx] = { status: "fulfilled", value: await tasks[idx]() };
+      } catch (reason: any) {
+        results[idx] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
 }
 
 export async function getIssuesFromCuratedRepos(
   repos: ReadonlyArray<{ owner: string; name: string }>,
   perRepo: number = 5
 ): Promise<Issue[]> {
-  const results = await Promise.allSettled(
-    repos.map(({ owner, name }) => getRepositoryIssues(owner, name, perRepo))
+  const tasks = repos.map(
+    ({ owner, name }) =>
+      () =>
+        getRepositoryIssues(owner, name, perRepo)
   );
+  const results = await withConcurrencyLimit(tasks, MAX_CONCURRENCY);
 
   return results
     .filter((r): r is PromiseFulfilledResult<Issue[]> => r.status === "fulfilled")

@@ -17,7 +17,10 @@ const SECRET_PATTERNS = [
   /Bearer\s+[a-zA-Z0-9\-\._~\+\/]+=*/gi,
 ];
 
-export function sanitizeError(error: unknown, fallbackMessage: string = "An internal error occurred"): string {
+export function sanitizeError(
+  error: unknown,
+  fallbackMessage: string = "An internal error occurred"
+): string {
   if (env.NODE_ENV === "production") {
     // Prevent internal database / stack / key exposure in production
     return fallbackMessage;
@@ -40,7 +43,7 @@ export function standardResponse<T>(
       success: true,
       data,
       error: null,
-      meta
+      meta,
     },
     { status, headers }
   );
@@ -57,7 +60,7 @@ export function errorResponse(
       success: false,
       data: null,
       error: message,
-      meta: details
+      meta: details,
     },
     { status, headers }
   );
@@ -70,27 +73,39 @@ export async function validateRequest<T extends z.ZodTypeAny>(
   try {
     const method = req.method.toUpperCase();
     let dataToValidate: any;
-    
+
     if (method === "GET") {
       const { searchParams } = new URL(req.url);
-      dataToValidate = Object.fromEntries(searchParams.entries());
+      // Group multi-value query params into arrays to avoid truncation.
+      // e.g. ?label=bug&label=ui → { label: ["bug", "ui"] }
+      const grouped: Record<string, string | string[]> = {};
+      for (const key of searchParams.keys()) {
+        const values = searchParams.getAll(key);
+        grouped[key] = values.length === 1 ? values[0] : values;
+      }
+      dataToValidate = grouped;
     } else {
       dataToValidate = await req.json();
     }
 
     const parsed = schema.safeParse(dataToValidate);
     if (!parsed.success) {
-      const errorMsg = parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join(", ");
+      const errorMsg = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join(", ");
       return {
         success: false,
-        errorResponse: errorResponse(`Validation failed: ${errorMsg}`, 400, parsed.error.format())
+        errorResponse: errorResponse(`Validation failed: ${errorMsg}`, 400, parsed.error.format()),
       };
     }
     return { success: true, data: parsed.data };
   } catch (error: unknown) {
     return {
       success: false,
-      errorResponse: errorResponse(`Invalid request structure: ${sanitizeError(error, "Malformed request body")}`, 400)
+      errorResponse: errorResponse(
+        `Invalid request structure: ${sanitizeError(error, "Malformed request body")}`,
+        400
+      ),
     };
   }
 }

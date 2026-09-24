@@ -1,24 +1,46 @@
-import { env } from "@openforge/config";
+/**
+ * Client-safe feature flag evaluation.
+ * Decoupled from `@openforge/config` to prevent leaking server environment
+ * secrets (GITHUB_TOKEN, OPENROUTER_API_KEY, DEBUG_API_SECRET) into client bundles.
+ */
 
 export function isAIEnabled(): boolean {
-  return env.ENABLE_AI ?? true;
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ENABLE_AI !== undefined) {
+    return process.env.NEXT_PUBLIC_ENABLE_AI !== "false";
+  }
+  return true;
 }
 
 export function isRecommendationsEnabled(): boolean {
-  return env.ENABLE_RECOMMENDATIONS ?? true;
+  if (
+    typeof process !== "undefined" &&
+    process.env?.NEXT_PUBLIC_ENABLE_RECOMMENDATIONS !== undefined
+  ) {
+    return process.env.NEXT_PUBLIC_ENABLE_RECOMMENDATIONS !== "false";
+  }
+  return true;
 }
 
 export function isMentorEnabled(): boolean {
-  return env.ENABLE_MENTOR ?? true;
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ENABLE_MENTOR !== undefined) {
+    return process.env.NEXT_PUBLIC_ENABLE_MENTOR !== "false";
+  }
+  return true;
 }
 
 export function isRepositoryIntelligenceEnabled(): boolean {
-  return env.ENABLE_REPOSITORY_INTELLIGENCE ?? true;
+  if (
+    typeof process !== "undefined" &&
+    process.env?.NEXT_PUBLIC_ENABLE_REPOSITORY_INTELLIGENCE !== undefined
+  ) {
+    return process.env.NEXT_PUBLIC_ENABLE_REPOSITORY_INTELLIGENCE !== "false";
+  }
+  return true;
 }
 
 export function isAnalyticsEnabled(): boolean {
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     return true;
   }
-  return env.NODE_ENV !== "test";
+  return typeof process !== "undefined" && process.env?.NODE_ENV !== "test";
 }

@@ -1,5 +1,11 @@
 import { AI_CONFIG } from "@openforge/config";
 import type { AIProvider, AIAvailabilityResult, AIChatMessage, AIRawResponse } from "../../types";
+import {
+  AIProviderError,
+  AITimeoutError,
+  AINetworkError,
+  AIResponseParseError,
+} from "../../errors";
 
 export class OllamaProvider implements AIProvider {
   readonly name = "ollama";
@@ -8,7 +14,12 @@ export class OllamaProvider implements AIProvider {
   private readonly defaultTimeout: number;
   private readonly retryCount: number;
 
-  constructor(config?: { baseUrl?: string; model?: string; timeoutMs?: number; retryCount?: number }) {
+  constructor(config?: {
+    baseUrl?: string;
+    model?: string;
+    timeoutMs?: number;
+    retryCount?: number;
+  }) {
     this.baseUrl = config?.baseUrl ?? AI_CONFIG.ollamaBaseUrl;
     this.model = config?.model ?? AI_CONFIG.model;
     this.defaultTimeout = config?.timeoutMs ?? AI_CONFIG.timeoutMs;
@@ -34,7 +45,7 @@ export class OllamaProvider implements AIProvider {
         };
       }
 
-      const data = await response.json() as { models?: { name: string }[] };
+      const data = (await response.json()) as { models?: { name: string }[] };
       const models = data.models ?? [];
       const hasModel = models.some((m) => m.name.startsWith(this.model));
 
@@ -58,7 +69,7 @@ export class OllamaProvider implements AIProvider {
 
   async chat(
     messages: AIChatMessage[],
-    options?: { temperature?: number; timeoutMs?: number },
+    options?: { temperature?: number; timeoutMs?: number }
   ): Promise<AIRawResponse> {
     const temperature = options?.temperature ?? AI_CONFIG.temperature;
     const timeoutMs = options?.timeoutMs ?? this.defaultTimeout;
@@ -85,10 +96,21 @@ export class OllamaProvider implements AIProvider {
         clearTimeout(timeout);
 
         if (!response.ok) {
-          throw new Error(`Ollama responded with status ${response.status}`);
+          throw new AIProviderError(
+            `Ollama responded with status ${response.status}`,
+            this.name,
+            response.status,
+            response.status >= 500
+          );
         }
 
-        const data = await response.json() as { message?: { content?: string }; model?: string };
+        let data: { message?: { content?: string }; model?: string };
+        try {
+          data = await response.json();
+        } catch {
+          throw new AIResponseParseError(this.name, "Response is not valid JSON");
+        }
+
         const content = data.message?.content ?? "";
         const durationMs = Date.now() - start;
 
@@ -98,13 +120,61 @@ export class OllamaProvider implements AIProvider {
           durationMs,
         };
       } catch (error) {
+        // Non-retryable typed errors bubble immediately
+        if (error instanceof AIProviderError && !error.retryable) {
+          throw error;
+        }
+
+        // Timeout detection (works in both Node.js and browser)
+        if (
+          error instanceof Error &&
+          (error.name === "AbortError" || (error as any).code === "ABORT_ERR")
+        ) {
+          lastError = new AITimeoutError(this.name, timeoutMs);
+          if (attempt < this.retryCount) {
+            await this.backoff(attempt);
+            continue;
+          }
+          throw lastError;
+        }
+
+        // Network errors
+        if (
+          error instanceof TypeError &&
+          (error.message.includes("fetch") || error.message.includes("network"))
+        ) {
+          lastError = new AINetworkError(this.name, error.message);
+          if (attempt < this.retryCount) {
+            await this.backoff(attempt);
+            continue;
+          }
+          throw lastError;
+        }
+
+        // Retryable typed errors
+        if (error instanceof AIProviderError && error.retryable) {
+          lastError = error;
+          if (attempt < this.retryCount) {
+            await this.backoff(attempt);
+            continue;
+          }
+          throw error;
+        }
+
         lastError = error instanceof Error ? error : new Error(String(error));
         if (attempt < this.retryCount) {
-          await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+          await this.backoff(attempt);
+          continue;
         }
       }
     }
 
-    throw lastError ?? new Error("Ollama chat failed after retries");
+    throw lastError ?? new AIProviderError("Ollama chat failed after retries", this.name);
+  }
+
+  /** Exponential backoff: 1s, 2s, 4s, ... */
+  private backoff(attempt: number): Promise<void> {
+    const delay = Math.min(1000 * Math.pow(2, attempt), 10_000);
+    return new Promise((resolve) => setTimeout(resolve, delay));
   }
 }
