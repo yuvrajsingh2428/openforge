@@ -8,6 +8,7 @@ import { RecommendationFilters } from "./recommendation-filters";
 import { RecommendationSort } from "./recommendation-sort";
 import { RecommendationGrid } from "./recommendation-grid";
 import { RecommendationEmptyState } from "./recommendation-empty-state";
+import { PaginationControls } from "@/components/pagination-controls";
 
 interface RecommendationExplorerProps {
   recommendations: Recommendation[];
@@ -17,6 +18,11 @@ export function RecommendationExplorer({ recommendations }: RecommendationExplor
   const {
     filters,
     filtered,
+    paginated,
+    page,
+    totalPages,
+    pageSize,
+    setPage,
     repositories,
     languages,
     categories,
@@ -27,7 +33,7 @@ export function RecommendationExplorer({ recommendations }: RecommendationExplor
     setMinScore,
     setSort,
     resetFilters,
-  } = useRecommendationFilters(recommendations);
+  } = useRecommendationFilters(recommendations, 12);
 
   const hasActiveFilters =
     filters.search !== "" ||
@@ -70,7 +76,16 @@ export function RecommendationExplorer({ recommendations }: RecommendationExplor
       />
 
       {filtered.length > 0 ? (
-        <RecommendationGrid recommendations={filtered} />
+        <>
+          <RecommendationGrid recommendations={paginated} />
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+          />
+        </>
       ) : (
         <RecommendationEmptyState hasFilters={hasActiveFilters} onReset={resetFilters} />
       )}

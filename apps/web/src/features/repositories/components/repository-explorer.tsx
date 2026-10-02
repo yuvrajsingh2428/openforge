@@ -8,6 +8,7 @@ import { RepositoryFilters } from "./repository-filters";
 import { RepositorySort } from "./repository-sort";
 import { RepositoryGrid } from "./repository-grid";
 import { RepositoryEmptyState } from "./repository-empty-state";
+import { PaginationControls } from "@/components/pagination-controls";
 
 interface RepositoryExplorerProps {
   repositories: RepositoryWithCategory[];
@@ -17,6 +18,11 @@ export function RepositoryExplorer({ repositories }: RepositoryExplorerProps) {
   const {
     filters,
     filtered,
+    paginated,
+    page,
+    totalPages,
+    pageSize,
+    setPage,
     languages,
     categories,
     setSearch,
@@ -24,7 +30,7 @@ export function RepositoryExplorer({ repositories }: RepositoryExplorerProps) {
     setCategory,
     setSort,
     resetFilters,
-  } = useRepositoryFilters(repositories);
+  } = useRepositoryFilters(repositories, 12);
 
   const hasActiveFilters = filters.search !== "" || filters.language !== "" || filters.category !== "";
 
@@ -58,7 +64,16 @@ export function RepositoryExplorer({ repositories }: RepositoryExplorerProps) {
 
       {/* Results */}
       {filtered.length > 0 ? (
-        <RepositoryGrid repositories={filtered} />
+        <>
+          <RepositoryGrid repositories={paginated} />
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+          />
+        </>
       ) : (
         <RepositoryEmptyState hasFilters={hasActiveFilters} onReset={resetFilters} />
       )}
