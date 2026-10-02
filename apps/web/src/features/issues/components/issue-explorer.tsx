@@ -8,6 +8,7 @@ import { IssueFilters } from "./issue-filters";
 import { IssueSort } from "./issue-sort";
 import { IssueGrid } from "./issue-grid";
 import { IssueEmptyState } from "./issue-empty-state";
+import { PaginationControls } from "@/components/pagination-controls";
 
 interface IssueExplorerProps {
   issues: Issue[];
@@ -17,6 +18,11 @@ export function IssueExplorer({ issues }: IssueExplorerProps) {
   const {
     filters,
     filtered,
+    paginated,
+    page,
+    totalPages,
+    pageSize,
+    setPage,
     repositories,
     languages,
     labels,
@@ -27,7 +33,7 @@ export function IssueExplorer({ issues }: IssueExplorerProps) {
     setState,
     setSort,
     resetFilters,
-  } = useIssueFilters(issues);
+  } = useIssueFilters(issues, 12);
 
   const hasActiveFilters =
     filters.search !== "" ||
@@ -72,7 +78,16 @@ export function IssueExplorer({ issues }: IssueExplorerProps) {
 
       {/* Results */}
       {filtered.length > 0 ? (
-        <IssueGrid issues={filtered} />
+        <>
+          <IssueGrid issues={paginated} />
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+          />
+        </>
       ) : (
         <IssueEmptyState hasFilters={hasActiveFilters} onReset={resetFilters} />
       )}
